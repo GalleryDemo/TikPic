@@ -35,6 +35,9 @@ public class Activity_Main extends AppCompatActivity {
         setContentView(R.layout.layout_main);
         mContext = getApplicationContext();
 
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         getWindowInfo();
 
 
@@ -80,7 +83,7 @@ public class Activity_Main extends AppCompatActivity {
         //注意要清除 FLAG_TRANSLUCENT_STATUS flag
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(getResources().getColor(android.R.color.white));
+            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             getWindow().getDecorView().setSystemUiVisibility(
