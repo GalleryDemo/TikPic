@@ -2,7 +2,7 @@ package com.oppo.tikpic.itemClass;
 
 import java.util.List;
 
-public class Media_Album extends Media_Item{
+public class Media_Album extends Media_File {
     //stores the index in allItemList for each mediaItem in the album.
     private List<Integer> mIndexInAllItemList;
 

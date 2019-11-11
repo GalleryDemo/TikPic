@@ -11,7 +11,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 
 import com.oppo.tikpic.itemClass.Media_Album;
-import com.oppo.tikpic.itemClass.Media_Item;
+import com.oppo.tikpic.itemClass.Media_File;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,7 +22,7 @@ public class DataManager {
     //stores all show case albums.
     private List<List> GalleryShowCaseList;
     //all media files are stored in this list.
-    private List<Media_Item> allItemList;
+    private List<Media_File> allItemList;
 
 
     private Context mContext;
@@ -69,7 +69,7 @@ public class DataManager {
                     }
                 }).start();
 
-                Media_Item media_item = new Media_Item(path,name,1,thumbnailPath);
+                Media_File media_item = new Media_File(path,name,1,thumbnailPath);
                 allItemList.add(media_item);
             }
 
