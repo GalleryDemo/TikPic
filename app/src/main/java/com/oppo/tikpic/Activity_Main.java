@@ -52,7 +52,7 @@ public class Activity_Main extends AppCompatActivity {
     }
 
     private void begin() {
-        data = new DataManager();
+        data = new DataManager(this);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
