@@ -1,5 +1,15 @@
 package com.oppo.tikpic;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -8,17 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Toast;
+import com.oppo.tikpic.timeline.TimelineFragment;
 
 public class Activity_Main extends AppCompatActivity {
 
@@ -52,6 +52,7 @@ public class Activity_Main extends AppCompatActivity {
     }
 
     private void begin() {
+
         data = new DataManager(this);
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -60,8 +61,8 @@ public class Activity_Main extends AppCompatActivity {
             }
         });
         thread.start();
-        //replaceFragment();
 
+        replaceFragment(new TimelineFragment());
     }
 
     public void replaceFragment(Fragment fragment) {
