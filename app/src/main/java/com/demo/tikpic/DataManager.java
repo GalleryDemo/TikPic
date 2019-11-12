@@ -16,7 +16,11 @@ import com.demo.tikpic.itemClass.MediaFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -91,14 +95,20 @@ public class DataManager {
                 long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN));
                 Date date = new Date(time);
 
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(date);
+
+                Log.d(DTAG,"ALBUM Year: " + calendar.get(Calendar.YEAR) + " Month: "+ calendar.get(Calendar.MONTH)+" Day: " + calendar.get((Calendar.DAY_OF_MONTH)));
+
                 //the getYear() method will return year starting from 1900, so we add 1900 to it.
                 String realDate = (1900 + date.getYear()) + "年" + date.getMonth() + "月" + date.getDay() + "日";
-                Log.d(DTAG,realDate);
+
                 media_file.setDate(realDate);
                 allItemList.add(media_file);
 
                 //creating albums base on the files' folder
                 String albumPath = pathBuild.substring(0, pathBuild.length() - id.length() - 1);
+
                 boolean flag_IsInAlbum = false;
                 for (MediaAlbum i : currentShowCase) {
 
@@ -228,7 +238,7 @@ public class DataManager {
     }
 
     private void broad() {
-        mContext.sendBroadcast(new Intent("com.oppo.tikpic.Broadcast.UpdateBroadcast"));
+        mContext.sendBroadcast(new Intent("com.demo.tikpic.Broadcast.UpdateBroadcast"));
     }
 
     private void createShowcaseList(){
@@ -288,7 +298,10 @@ public class DataManager {
         return GalleryShowCaseList.get(showcase).get(album).getAlbum();
     }
 
-    public int getShowcaseOrAlbumOrIndex(int showcase, int album, int index){
-        return  GalleryShowCaseList.get(showcase).get(album).get(index);
+    public MediaFile getShowcaseOrAlbumOrIndex(int showcase, int album, int index){
+
+        int indexInAll = GalleryShowCaseList.get(showcase).get(album).get(index);
+
+        return allItemList.get(indexInAll);
     }
 }

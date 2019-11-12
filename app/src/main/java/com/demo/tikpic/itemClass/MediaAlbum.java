@@ -21,7 +21,7 @@ public class MediaAlbum extends MediaFile {
     public MediaAlbum(String path, String name, int type, int fileIndex, String thumbnailPath){
 
         super(path,name,type,thumbnailPath);
-        Log.d(DTAG,"MAKING ALBUM: path "+path);
+        //Log.d(DTAG,"MAKING ALBUM: path "+path);
         mIndexInAllItemList = new ArrayList<>();
         mIndexInAllItemList.add(fileIndex);
     }
