@@ -1,14 +1,15 @@
-package com.demo.tikpic;
+package com.demo.tikpic.ViewPager;
 
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 
-import com.demo.tikpic.itemClass.MediaAlbum;
+import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.itemClass.MediaFile;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public class ViewPagerAdapter extends PagerAdapter {
         mActivity = activity_main;
         this.listIndex = listIndex;
         mList = mActivity.data.getShowcaseOrAlbumOrIndex(0,listIndex);
+        Log.d(TAG, "ViewPagerAdapter: "+mList.size());
         this.imgIndex = imgIndex;
         mViewMap = new HashMap<>();
     }
@@ -48,25 +50,26 @@ public class ViewPagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
 
-   //     MediaFile item = mActivity.data.getShowcaseOrAlbumOrIndex(0,0,0);
-   //     Log.d(TAG, "onCreateView: "+item.getType()+item.getPath());
-   //     if(item.getType()==1){
-/*
+        MediaFile item = mActivity.data.getShowcaseOrAlbumOrIndex(0,0,0);
+        if(item.getType()==1){
+            Log.d(TAG, "instantiateItem: "+position);
+
             ImageDisplayView view = new ImageDisplayView(mContext, mActivity);
             view.setAlbumImage(position, listIndex);
+
             container.addView(view);
             mViewMap.put(position,view);
-            return view;*/
+            return view;
 
-    //    }else{
+        }else{
             /*VideoDisplayView view = new VideoDisplayView(mContext);
             view.setResourse(item.getPath());
             container.addView(view);
             mViewMap.put(position,view);
             return view;*/
+            return new ImageView(mContext);
 
-    //    }
-        return null;
+        }
 
     }
 

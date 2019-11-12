@@ -81,6 +81,7 @@ public class DataManager {
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
                 from = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
 
+
                 new Thread(new Runnable() {
                     @Override
                     public void run() {

@@ -1,6 +1,5 @@
 package com.demo.tikpic.gallery;
 
-import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
-import com.demo.tikpic.ViewPagerFragment;
+import com.demo.tikpic.ViewPager.ViewPagerFragment;
 
 import java.util.List;
 

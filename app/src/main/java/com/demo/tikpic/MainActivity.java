@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.demo.tikpic.ViewPager.ViewPagerFragment;
 import com.demo.tikpic.timeline.TimelineFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -62,8 +63,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         thread.start();
-
-        replaceFragment(new TimelineFragment(),false);
+pos=new int[]{0,0,0};
+        //replaceFragment(new TimelineFragment(),false);
+        replaceFragment(new ViewPagerFragment(),false);
     }
 
     public void replaceFragment(Fragment fragment) {
