@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
 
 import java.util.ArrayList;
@@ -20,14 +21,16 @@ import java.util.List;
 
 public class GalleryFragment extends Fragment {
 
+    private MainActivity hostActivity;
     private RecyclerView recyclerView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        hostActivity = (MainActivity) getActivity();
         View root = inflater.inflate(R.layout.fragment_gallery, container, false);
 
         recyclerView = root.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new DataAdapter(getActivity(), getImageUrlList()));
+        recyclerView.setAdapter(new DataAdapter(hostActivity, getImageUrlList()));
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);

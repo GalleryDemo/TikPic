@@ -19,7 +19,7 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapt
 
 public class TimelineFragment extends Fragment implements PhotoSection.ClickListener {
 
-    private MainActivity hostAcitivity;
+    private MainActivity hostActivity;
     private SectionedRecyclerViewAdapter sectionedAdapter;
 
     @Nullable
@@ -27,7 +27,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        hostAcitivity = (MainActivity) getActivity();
+        hostActivity = (MainActivity) getActivity();
 
         final View view = inflater.inflate(R.layout.fragment_timeline, container, false);
 
@@ -36,7 +36,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
         final LoadPhotos loadPhotos = new LoadPhotos(getActivity());
         for(String album : loadPhotos.getAlbumList()) {
             sectionedAdapter.addSection(
-                    new PhotoSection(album, loadPhotos.execute(album), hostAcitivity, this));
+                    new PhotoSection(album, loadPhotos.execute(album), hostActivity, this));
         }
 
         final RecyclerView recyclerView = view.findViewById(R.id.recyclerview);
