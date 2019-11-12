@@ -1,4 +1,4 @@
-package com.oppo.tikpic;
+package com.demo.tikpic;
 
 import org.junit.Test;
 

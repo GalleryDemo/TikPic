@@ -1,4 +1,4 @@
-package com.oppo.tikpic.timeline;
+package com.demo.tikpic.timeline;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,18 +12,23 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.oppo.tikpic.R;
+import com.demo.tikpic.MainActivity;
+import com.demo.tikpic.R;
 
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
 
 public class TimelineFragment extends Fragment implements PhotoSection.ClickListener {
 
+    private MainActivity hostAcitivity;
     private SectionedRecyclerViewAdapter sectionedAdapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
+        hostAcitivity = (MainActivity) getActivity();
+
         final View view = inflater.inflate(R.layout.fragment_timeline, container, false);
 
         sectionedAdapter = new SectionedRecyclerViewAdapter();
@@ -31,7 +36,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
         final LoadPhotos loadPhotos = new LoadPhotos(getActivity());
         for(String album : loadPhotos.getAlbumList()) {
             sectionedAdapter.addSection(
-                    new PhotoSection(album, loadPhotos.execute(album), getContext(), this));
+                    new PhotoSection(album, loadPhotos.execute(album), hostAcitivity, this));
         }
 
         final RecyclerView recyclerView = view.findViewById(R.id.recyclerview);

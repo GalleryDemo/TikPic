@@ -1,4 +1,4 @@
-package com.oppo.tikpic.timeline;
+package com.demo.tikpic.timeline;
 
 import android.app.Activity;
 import android.database.Cursor;
@@ -45,38 +45,39 @@ final class LoadPhotos {
                 null,
                 MediaStore.MediaColumns.DATE_TAKEN + " DESC");
 
-        while (cursor.moveToNext()) {
-            // get URI
-            String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
-            String uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                    .buildUpon().appendPath(String.valueOf(id)).build().toString();
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                // get URI
+                String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                String uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        .buildUpon().appendPath(String.valueOf(id)).build().toString();
 
-            // get Time Tag
-            long millisSinceEpoch = cursor.getLong(
-                    cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN));
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTimeInMillis(millisSinceEpoch);
-            String year = String.valueOf(calendar.get(Calendar.YEAR));
-            String month = String.valueOf(calendar.get(Calendar.MONTH));
-            if(month.length() == 1) {
-                StringBuilder monthBuilder = new StringBuilder("0");
-                monthBuilder.append(month);
-                month = monthBuilder.toString();
+                // get Time Tag
+                long millisSinceEpoch = cursor.getLong(
+                        cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN));
+                Calendar calendar = new GregorianCalendar();
+                calendar.setTimeInMillis(millisSinceEpoch);
+                String year = String.valueOf(calendar.get(Calendar.YEAR));
+                String month = String.valueOf(calendar.get(Calendar.MONTH));
+                if(month.length() == 1) {
+                    month = "0" + month;
+                }
+                String yyyyMM = year + "/" + month;
+
+                // add record
+                if(albumMap.get(yyyyMM) == null) {
+                    albumMap.put(yyyyMM, new ArrayList<>());
+                }
+
+                albumMap.get(yyyyMM).add(uri);
             }
-            String yyyyMM = year + "/" + month;
-
-            // add record
-            if(albumMap.get(yyyyMM) == null) {
-                albumMap.put(yyyyMM, new ArrayList<>());
-            }
-
-            albumMap.get(yyyyMM).add(uri);
+            cursor.close();
         }
-        cursor.close();
+
         return albumMap;
     }
 
-    public Set<String> getAlbumList() {
+    Set<String> getAlbumList() {
         return albumMap.keySet();
     }
 

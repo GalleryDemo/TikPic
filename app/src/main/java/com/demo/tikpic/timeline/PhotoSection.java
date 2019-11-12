@@ -1,13 +1,13 @@
-package com.oppo.tikpic.timeline;
+package com.demo.tikpic.timeline;
 
-import android.content.Context;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.oppo.tikpic.R;
+import com.demo.tikpic.MainActivity;
+import com.demo.tikpic.R;
 
 import java.util.List;
 
@@ -19,11 +19,11 @@ final class PhotoSection extends Section {
 
     private final String title;
     private final List<Photo> list;
-    private final Context context;
+    private final MainActivity hostActivity;
     private final ClickListener clickListener;
 
     PhotoSection(@NonNull final String title, @NonNull final List<Photo> list,
-                 @NonNull final Context context, @NonNull final ClickListener clickListener) {
+                 @NonNull final MainActivity activity, @NonNull final ClickListener clickListener) {
         super(SectionParameters.builder()
                 .itemResourceId(R.layout.photo_section_item)
                 .headerResourceId(R.layout.photo_section_header)
@@ -31,7 +31,7 @@ final class PhotoSection extends Section {
 
         this.title = title;
         this.list = list;
-        this.context = context;
+        this.hostActivity = activity;
         this.clickListener = clickListener;
     }
 
@@ -51,7 +51,7 @@ final class PhotoSection extends Section {
 
         final Photo photo = list.get(position);
 
-        Glide.with(context)
+        Glide.with(hostActivity)
                 .asBitmap()
                 .load(photo.getUrl())
                 .into(itemHolder.imageView);

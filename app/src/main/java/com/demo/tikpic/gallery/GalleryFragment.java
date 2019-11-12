@@ -1,4 +1,4 @@
-package com.oppo.tikpic.gallery;
+package com.demo.tikpic.gallery;
 
 
 import android.database.Cursor;
@@ -14,8 +14,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.oppo.tikpic.MainActivity;
-import com.oppo.tikpic.R;
+import com.demo.tikpic.MainActivity;
+import com.demo.tikpic.R;
 
 import java.util.ArrayList;
 import java.util.List;

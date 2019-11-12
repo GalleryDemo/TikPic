@@ -1,4 +1,4 @@
-package com.oppo.tikpic.timeline;
+package com.demo.tikpic.timeline;
 
 import android.view.View;
 import android.widget.ImageView;
@@ -6,7 +6,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.oppo.tikpic.R;
+import com.demo.tikpic.R;
 
 final class ItemViewHolder extends RecyclerView.ViewHolder {
 

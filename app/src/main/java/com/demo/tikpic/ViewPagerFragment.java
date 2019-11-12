@@ -1,4 +1,4 @@
-package com.oppo.tikpic;
+package com.demo.tikpic;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

@@ -1,4 +1,4 @@
-package com.oppo.tikpic;
+package com.demo.tikpic;
 
 import android.Manifest;
 import android.content.Context;
@@ -18,7 +18,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.oppo.tikpic.timeline.TimelineFragment;
+import com.demo.tikpic.timeline.TimelineFragment;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     public DataManager data;
     public int mScreenWidth, mScreenHeight, mScreenOrientation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
         getWindowInfo();
 
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
+
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 ActivityCompat.requestPermissions(MainActivity.this,
                         new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
@@ -53,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void begin() {
 
-        data = new DataManager(this);
+        data = DataManager.getInstance(this);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -62,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         });
         thread.start();
 
-        replaceFragment(new TimelineFragment(),false);
+        replaceFragment(new TimelineFragment());
     }
 
     public void replaceFragment(Fragment fragment) {
@@ -70,9 +72,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void replaceFragment(Fragment fragment, boolean isInStack) {
+
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.add(R.id.mainLayout_FrameLayout, fragment);
+        transaction.replace(R.id.mainLayout_FrameLayout, fragment);
         if (isInStack) {
             transaction.addToBackStack(null);
         }

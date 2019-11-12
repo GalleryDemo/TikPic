@@ -1,4 +1,4 @@
-package com.oppo.tikpic;
+package com.demo.tikpic;
 
 import android.content.Context;
 import android.os.Bundle;

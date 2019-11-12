@@ -1,4 +1,4 @@
-package com.oppo.tikpic.timeline;
+package com.demo.tikpic.timeline;
 
 import androidx.annotation.NonNull;
 
@@ -10,7 +10,7 @@ class Photo {
         this.url = url;
     }
 
-    public String getUrl() {
+    String getUrl() {
         return url;
     }
 }
