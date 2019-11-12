@@ -1,9 +1,11 @@
 package com.demo.tikpic;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,43 +17,53 @@ import androidx.viewpager.widget.ViewPager;
 
 public class ViewPagerFragment extends Fragment {
 
-    private MainActivity hostActivity;
-    private ViewPager viewPager;
-    private PagerAdapter pagerAdapter;
+    private static String TAG = "Fragment_Albums";
+    private Context mContext;
+    private MainActivity mActivity;
+    private ViewPager view;
+
+    private int mListIndex, mPicIndex;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mContext = context;
+        mActivity = (MainActivity) getActivity();
+
+        mListIndex = mActivity.pos[1];
+        mPicIndex = mActivity.pos[2];
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+
+
+    }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        //return super.onCreateView(inflater, container, savedInstanceState);
 
-        hostActivity = (MainActivity) getActivity();
-
-        View rootView = inflater.inflate(R.layout.fragment_view_pager, container, false);
-        viewPager = rootView.findViewById(R.id.pager);
-        pagerAdapter = new PhotoSlidePagerAdapter(hostActivity.getSupportFragmentManager());
-        viewPager.setAdapter(pagerAdapter);
-
-        // TODO: GET CURRENT ITEM FROM HOST ACTIVITY
-        // viewPager.setCurrentItem(0);
-
-        return rootView;
-    }
-
-    private class PhotoSlidePagerAdapter extends FragmentStatePagerAdapter {
-
-        PhotoSlidePagerAdapter(FragmentManager fm) {
-            super(fm);
+        if (mActivity.getSupportActionBar() != null) {
+            mActivity.getSupportActionBar().hide();
         }
+        mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //隐藏状态栏
 
-        @NonNull
-        @Override
-        public Fragment getItem(int position) {
-            return PageFragment.newInstance(position);
-        }
 
-        @Override
-        public int getCount() { return 0; }
+
+        view = new ViewPager(mContext);
+        ViewPagerAdapter mAdapter = new ViewPagerAdapter(mContext,mActivity,mListIndex,mPicIndex);
+        view.setAdapter(mAdapter);
+        view.setCurrentItem(mPicIndex);
+        return view;
+
+      /* VideoDisplayView view = new VideoDisplayView(mContext);
+       view.setResourse(mActivity.data.get(mListIndex,mPicIndex).getPath());
+       return view;*/
+
     }
 
 }

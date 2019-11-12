@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private Context mContext;
 
     public DataManager data;
+    public int pos[]={-1,-1,-1};
     public int mScreenWidth, mScreenHeight, mScreenOrientation;
 
 
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         });
         thread.start();
 
-        replaceFragment(new TimelineFragment());
+        replaceFragment(new TimelineFragment(),false);
     }
 
     public void replaceFragment(Fragment fragment) {
