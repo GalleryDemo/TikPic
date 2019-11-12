@@ -20,14 +20,13 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.oppo.tikpic.timeline.TimelineFragment;
 
-public class Activity_Main extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
-    private String TAG = "Activity_Main";
+    private String TAG = "MainActivity";
     private Context mContext;
 
     public DataManager data;
     public int mScreenWidth, mScreenHeight, mScreenOrientation;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +39,11 @@ public class Activity_Main extends AppCompatActivity {
 
         getWindowInfo();
 
-
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                ActivityCompat.requestPermissions(Activity_Main.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
             }
         } else {
             begin();
@@ -62,7 +62,7 @@ public class Activity_Main extends AppCompatActivity {
         });
         thread.start();
 
-        replaceFragment(new TimelineFragment());
+        replaceFragment(new TimelineFragment(),false);
     }
 
     public void replaceFragment(Fragment fragment) {
@@ -72,7 +72,7 @@ public class Activity_Main extends AppCompatActivity {
     private void replaceFragment(Fragment fragment, boolean isInStack) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.mainLayout_FrameLayout, fragment);
+        transaction.add(R.id.mainLayout_FrameLayout, fragment);
         if (isInStack) {
             transaction.addToBackStack(null);
         }
@@ -113,7 +113,7 @@ public class Activity_Main extends AppCompatActivity {
             } else {
                 Toast.makeText(mContext, "存储空间读写权限申请失败", Toast.LENGTH_SHORT).show();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    ActivityCompat.requestPermissions(Activity_Main.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
                 }
             }
         }

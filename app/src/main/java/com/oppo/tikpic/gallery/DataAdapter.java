@@ -1,25 +1,28 @@
 package com.oppo.tikpic.gallery;
 
-import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.oppo.tikpic.MainActivity;
 import com.oppo.tikpic.R;
+import com.oppo.tikpic.ViewPagerFragment;
 
 import java.util.List;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
-    private Activity hostActivity;
+    private MainActivity hostActivity;
     private List<String> imageUrlList;
 
-    DataAdapter(Activity activity, List<String> UrlList) {
+    DataAdapter(MainActivity activity, List<String> UrlList) {
         hostActivity = activity;
         imageUrlList = UrlList;
     }
@@ -61,7 +64,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
         @Override
         public void onClick(View v) {
+            FragmentManager fragmentManager = hostActivity.getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.mainLayout_FrameLayout, new ViewPagerFragment());
+            fragmentTransaction.addToBackStack(null);
 
+            fragmentTransaction.commit();
         }
     }
 

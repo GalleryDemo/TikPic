@@ -9,10 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.oppo.tikpic.MainActivity;
 import com.oppo.tikpic.R;
 
 import java.util.ArrayList;
@@ -20,37 +22,45 @@ import java.util.List;
 
 public class GalleryFragment extends Fragment {
 
+    private MainActivity hostActivity;
     private RecyclerView recyclerView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_gallery, container, false);
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
 
-        recyclerView = root.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new DataAdapter(getActivity(), getImageUrlList()));
+        hostActivity = (MainActivity) getActivity();
+
+        View rootView = inflater.inflate(R.layout.fragment_gallery, container, false);
+
+        recyclerView = rootView.findViewById(R.id.recyclerView);
+        recyclerView.setAdapter(new DataAdapter(hostActivity, getImageUrlList()));
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
 
-        return root;
+        return rootView;
     }
 
     private List<String> getImageUrlList() {
         List<String> imageList = new ArrayList<>();
-        Cursor cursor = getActivity().getContentResolver().query(
+        Cursor cursor = hostActivity.getContentResolver().query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 new String[]{MediaStore.Images.Media._ID},
                 null,
                 null,
                 null);
 
-        while (cursor.moveToNext()) {
-            String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
-            String uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                    .buildUpon().appendPath(String.valueOf(id)).build().toString();
-            imageList.add(uri);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                String uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        .buildUpon().appendPath(String.valueOf(id)).build().toString();
+                imageList.add(uri);
+            }
+            cursor.close();
         }
-        cursor.close();
+
         return imageList;
     }
 
