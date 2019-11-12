@@ -75,8 +75,6 @@ public class DataManager {
             //loop the cursor to save media items.
             for(cursor.moveToFirst(), indexNumber = 0; !cursor.isAfterLast(); cursor.moveToNext(), indexNumber++){
                 final String path, name, from, id;
-
-                //path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
                 id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
                 String pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
@@ -98,11 +96,12 @@ public class DataManager {
 
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(date);
+                calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH)+1);
 
-                Log.d(DTAG,"ALBUM Year: " + calendar.get(Calendar.YEAR) + " Month: "+ calendar.get(Calendar.MONTH)+" Day: " + calendar.get((Calendar.DAY_OF_MONTH)));
 
-                //the getYear() method will return year starting from 1900, so we add 1900 to it.
-                String realDate = (1900 + date.getYear()) + "年" + date.getMonth() + "月" + date.getDay() + "日";
+                //Log.d(DTAG,"ALBUM Year: " + calendar.get(Calendar.YEAR) + " Month: "+ calendar.get(Calendar.MONTH)+" Day: " + calendar.get((Calendar.DAY_OF_MONTH)));
+
+                String realDate = calendar.get(Calendar.YEAR) + "年" + calendar.get(Calendar.MONTH)+ "月" + calendar.get(Calendar.DAY_OF_MONTH) + "日";
 
                 media_file.setDate(realDate);
                 allItemList.add(media_file);
@@ -144,18 +143,8 @@ public class DataManager {
 
             for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext(),indexNumber++){
                 final String path, name, from, id;
-
-//                String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
-//                String uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-//                        .buildUpon().appendPath(String.valueOf(id)).build().toString();
-//                imageList.add(uri);
-
-                //path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
                 id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
                 String pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
-
-
-
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
                 from = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
 
@@ -171,8 +160,12 @@ public class DataManager {
 
                 long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN));
                 Date date = new Date(time);
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(date);
+                calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH)+1);
 
-                String realDate = (1900 + date.getYear()) + "年" + date.getMonth() + "月" + date.getDay() + "日";
+                String realDate = calendar.get(Calendar.YEAR) + "年" + calendar.get(Calendar.MONTH)+ "月" + calendar.get(Calendar.DAY_OF_MONTH) + "日";
+
                 Log.d(DTAG,realDate);
                 media_file.setDate(realDate);
                 allItemList.add(media_file);
