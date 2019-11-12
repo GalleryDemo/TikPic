@@ -8,7 +8,7 @@ public class MediaFile {
     private String thumbnailPath;
 
 
-    MediaFile(String path, String name, int type){
+    public MediaFile(String path, String name, int type){
         this(name,path,type,null);
     }
 

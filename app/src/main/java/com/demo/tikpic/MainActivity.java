@@ -20,7 +20,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.demo.tikpic.timeline.TimelineFragment;
 
-
 public class MainActivity extends AppCompatActivity {
 
     private String TAG = "MainActivity";
@@ -54,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void begin() {
-
         data = DataManager.getInstance(this);
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -72,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void replaceFragment(Fragment fragment, boolean isInStack) {
-
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.mainLayout_FrameLayout, fragment);
