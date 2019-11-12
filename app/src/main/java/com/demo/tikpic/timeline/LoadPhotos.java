@@ -1,8 +1,9 @@
 package com.demo.tikpic.timeline;
 
-import android.app.Activity;
 import android.database.Cursor;
 import android.provider.MediaStore;
+
+import com.demo.tikpic.MainActivity;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -15,10 +16,10 @@ import java.util.Set;
 final class LoadPhotos {
 
     private static final String TAG = "LoadPhotos";
-    private Activity activity;
+    private MainActivity activity;
     private Map<String, List<String>> albumMap;
 
-    LoadPhotos(Activity activity) {
+    LoadPhotos(MainActivity activity) {
         this.activity = activity;
         albumMap = getAlbumMap();
 

@@ -33,7 +33,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
 
         sectionedAdapter = new SectionedRecyclerViewAdapter();
 
-        final LoadPhotos loadPhotos = new LoadPhotos(getActivity());
+        final LoadPhotos loadPhotos = new LoadPhotos(hostActivity);
         for(String album : loadPhotos.getAlbumList()) {
             sectionedAdapter.addSection(
                     new PhotoSection(album, loadPhotos.execute(album), hostActivity, this));
@@ -41,7 +41,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
 
         final RecyclerView recyclerView = view.findViewById(R.id.recyclerview);
 
-        final GridLayoutManager glm = new GridLayoutManager(getContext(), 2);
+        final GridLayoutManager glm = new GridLayoutManager(hostActivity, 2);
         glm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(final int position) {
