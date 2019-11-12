@@ -123,7 +123,7 @@ public class DataManager {
                 //the current show case is one of the showcases, which will display all the default folders(screenshot/camera/example) from phone.
                 //here we are only adding these default sub-albums to the current showcase, which maybe the initial showcase.
                 if(!flag_IsInAlbum){
-                    currentShowCase.add(new MediaAlbum(from, albumPath, 1, indexNumber, thumbnailPath));
+                    currentShowCase.add(new MediaAlbum(albumPath,from,1, indexNumber, thumbnailPath));
                     broad();
                 }
             }
