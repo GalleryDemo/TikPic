@@ -1,4 +1,4 @@
-package com.oppo.tikpic.gallery;
+package com.demo.tikpic.gallery;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.oppo.tikpic.R;
+import com.demo.tikpic.R;
 
 import java.util.List;
 

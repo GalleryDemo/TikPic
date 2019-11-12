@@ -1,4 +1,12 @@
-package com.oppo.tikpic;
+package com.demo.tikpic;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.content.Context;
@@ -10,19 +18,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+import com.demo.tikpic.timeline.TimelineFragment;
 
-import com.oppo.tikpic.timeline.TimelineFragment;
+public class MainActivity extends AppCompatActivity {
 
-public class Activity_Main extends AppCompatActivity {
-
-    private String TAG = "Activity_Main";
+    private String TAG = "MainActivity";
     private Context mContext;
 
     public DataManager data;
@@ -43,7 +43,7 @@ public class Activity_Main extends AppCompatActivity {
 
         if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                ActivityCompat.requestPermissions(Activity_Main.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
             }
         } else {
             begin();
@@ -52,8 +52,7 @@ public class Activity_Main extends AppCompatActivity {
     }
 
     private void begin() {
-
-        data = new DataManager(this);
+        data = DataManager.getInstance(this);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -113,7 +112,7 @@ public class Activity_Main extends AppCompatActivity {
             } else {
                 Toast.makeText(mContext, "存储空间读写权限申请失败", Toast.LENGTH_SHORT).show();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    ActivityCompat.requestPermissions(Activity_Main.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
                 }
             }
         }

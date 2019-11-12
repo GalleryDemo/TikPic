@@ -1,6 +1,6 @@
-package com.oppo.tikpic.itemClass;
+package com.demo.tikpic.itemClass;
 
-public class Media_File {
+public class MediaFile {
     private String path;
     private String name;
     private String date;
@@ -8,11 +8,11 @@ public class Media_File {
     private String thumbnailPath;
 
 
-    public Media_File(String path, String name, int type){
+    public MediaFile(String path, String name, int type){
         this(name,path,type,null);
     }
 
-    public Media_File(String path, String name, int type, String thumbnailPath){
+    public MediaFile(String path, String name, int type, String thumbnailPath){
 
         this.path = path;
         this.name = name;

@@ -1,4 +1,4 @@
-package com.oppo.tikpic.timeline;
+package com.demo.tikpic.timeline;
 
 import androidx.annotation.NonNull;
 
