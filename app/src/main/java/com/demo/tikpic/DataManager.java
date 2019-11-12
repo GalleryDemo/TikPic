@@ -75,6 +75,7 @@ public class DataManager {
             //loop the cursor to save media items.
             for(cursor.moveToFirst(), indexNumber = 0; !cursor.isAfterLast(); cursor.moveToNext(), indexNumber++){
                 final String path, name, from, id;
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
                 id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
                 String pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
@@ -106,11 +107,12 @@ public class DataManager {
                 allItemList.add(media_file);
 
                 //creating albums base on the files' folder
-                String albumPath = pathBuild.substring(0, pathBuild.length() - id.length() - 1);
+                String albumPath = path.substring(0, path.length() - name.length() - 1);
+
+
 
                 boolean flag_IsInAlbum = false;
                 for (MediaAlbum i : currentShowCase) {
-
                     //loop the album folder, if the current image have the same parent folder
                     if (i.getPath().compareTo(albumPath) == 0) {
                         i.addIndex(indexNumber);
@@ -142,6 +144,7 @@ public class DataManager {
 
             for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext(),indexNumber++){
                 final String path, name, from, id;
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
                 id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
                 String pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
@@ -169,10 +172,11 @@ public class DataManager {
                 media_file.setDate(realDate);
                 allItemList.add(media_file);
 
-                String albumPath = pathBuild.substring(0, pathBuild.length() - id.length() - 1);
+                String albumPath = path.substring(0, path.length() - name.length() - 1);
+
+
                 boolean flag_IsInAlbum = false;
                 for (MediaAlbum i : currentShowCase) {
-
 
                     if (i.getPath().compareTo(albumPath) == 0) {
                         i.addIndex(indexNumber);
@@ -184,8 +188,8 @@ public class DataManager {
                         break;
                     }
                 }
-
                 if(!flag_IsInAlbum){
+                    Log.d(DTAG,"ALBUM PATH: "+albumPath);
                     currentShowCase.add(new MediaAlbum(albumPath,from, 2, indexNumber, thumbnailPath));
                     broad();
                 }
@@ -240,7 +244,9 @@ public class DataManager {
         createAllPicAlbumShowcase();
         //showcase index 2: date list
         createDateAlbumShowcase();
-
+        Log.d(DTAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
+        Log.d(DTAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
+        Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
     }
 
     private void createAllPicAlbumShowcase(){
@@ -276,7 +282,7 @@ public class DataManager {
                 }
             }
             if(!haveDateAlbum){
-
+                Log.d(DTAG,"DATE SHOWCASE ALBUM: "+ i.getDate());
                 dateList.add(new MediaAlbum(i.getDate(),i.getDate(),1,indexNumber,i.getThumbnailPath()));
             }
             indexNumber++;
