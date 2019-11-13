@@ -20,7 +20,7 @@ public class ViewPagerAdapter extends PagerAdapter {
 
     private String TAG  = "MyPagerAdapter";
     private MainActivity mActivity;
-    private List<Integer> mList;
+    private List<MediaFile> mList;
     private int listIndex;
     private int imgIndex;
     private Context mContext;
@@ -30,7 +30,7 @@ public class ViewPagerAdapter extends PagerAdapter {
         mContext = context;
         mActivity = activity_main;
         this.listIndex = listIndex;
-        //mList = mActivity.data.getShowcaseOrAlbumOrIndex(0,listIndex);
+        mList = mActivity.data.getShowcaseOrAlbumOrIndex(0,listIndex);
         Log.d(TAG, "ViewPagerAdapter: "+mList.size());
         this.imgIndex = imgIndex;
         mViewMap = new HashMap<>();
