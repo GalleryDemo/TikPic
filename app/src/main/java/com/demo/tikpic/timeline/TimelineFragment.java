@@ -34,9 +34,11 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
         sectionedAdapter = new SectionedRecyclerViewAdapter();
 
         final LoadPhotos loadPhotos = new LoadPhotos(hostActivity);
-        for(String album : loadPhotos.getAlbumList()) {
+        for(int i = 0; i < loadPhotos.getAlbumListSize(); i++) {
             sectionedAdapter.addSection(
-                    new PhotoSection(album, loadPhotos.execute(album), hostActivity, this));
+                    new PhotoSection(loadPhotos.getAlbumName(i),
+                            loadPhotos.getPhotoListInAlbum(i),
+                            hostActivity, this));
         }
 
         final RecyclerView recyclerView = view.findViewById(R.id.recyclerview);
@@ -55,12 +57,12 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
         recyclerView.setLayoutManager(glm);
         recyclerView.setAdapter(sectionedAdapter);
 
-
         return view;
     }
 
     @Override
-    public void onHeaderRootViewClicked(@NonNull final String sectionTitle, @NonNull final PhotoSection section) {
+    public void onHeaderRootViewClicked(@NonNull final String sectionTitle,
+                                        @NonNull final PhotoSection section) {
         Toast.makeText(
                 getContext(),
                 String.format(
@@ -72,16 +74,17 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
     }
 
     @Override
-    public void onItemRootViewClicked(@NonNull final String sectionTitle, final int itemAdapterPosition) {
+    public void onItemRootViewClicked(@NonNull final String sectionTitle,
+                                      final int itemAdapterPosition) {
         Toast.makeText(
                 getContext(),
                 String.format(
                         "Clicked on position #%s of Section %s",
                         sectionedAdapter.getPositionInSection(itemAdapterPosition),
-                        sectionTitle
-                ),
-                Toast.LENGTH_SHORT
-        ).show();
+                        sectionTitle), Toast.LENGTH_SHORT).show();
+
+
+
     }
 
 }

@@ -1,7 +1,5 @@
 package com.demo.tikpic.itemClass;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +18,7 @@ public class MediaAlbum extends MediaFile {
 
     public MediaAlbum(String path, String name, int type, int fileIndex, String thumbnailPath){
 
-        super(path,name,type,thumbnailPath);
+        super(path, name, type, thumbnailPath);
         //Log.d(DTAG,"MAKING ALBUM: path "+path);
         mIndexInAllItemList = new ArrayList<>();
         mIndexInAllItemList.add(fileIndex);
@@ -38,7 +36,7 @@ public class MediaAlbum extends MediaFile {
         return mIndexInAllItemList.get(index);
     }
 
-    public List getAlbum(){
+    public List<Integer> getAlbum() {
         return mIndexInAllItemList;
     }
 }

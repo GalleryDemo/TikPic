@@ -16,9 +16,6 @@ import com.demo.tikpic.itemClass.MediaFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -76,14 +73,11 @@ public class DataManager {
         int indexNumber;
         Cursor cursor;
         String thumbnailPath;
-
         String externalCacheDir = mContext.getExternalCacheDir().toString();
         ContentResolver cr = mContext.getContentResolver();
 
         //scan images
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-
         cursor = cr.query(uri, null, null, null, null);
 
         Calendar calendar = Calendar.getInstance();
@@ -202,6 +196,7 @@ public class DataManager {
 
                 boolean flag_IsInAlbum = false;
                 for (MediaAlbum i : currentShowCase) {
+
                     if (i.getPath().compareTo(albumPath) == 0) {
                         i.addIndex(indexNumber);
                         if(i.getType() == 1){
