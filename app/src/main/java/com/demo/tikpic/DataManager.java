@@ -39,11 +39,21 @@ public class DataManager {
         GalleryShowCaseList = new ArrayList<>();
         currentShowCase = new ArrayList<>();
         GalleryShowCaseList.add(currentShowCase);
-        scanMediaFiles();
+        Log.d(DTAG,"START ALLLIST SIZE: " + allItemList.size());
 
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                scanMediaFiles();
+            }
+        }).start();
+
+        Log.d(DTAG,"END OF scanfile :");
     }
 
-    public static DataManager getInstance(Context context) {
+    public static DataManager getInstance(Context context){
         if(sDataManager == null){
             sDataManager = new DataManager(context);
         }
@@ -56,7 +66,9 @@ public class DataManager {
         return null;
     }
 
-    public boolean scanMediaFiles() {
+    public boolean scanMediaFiles(){
+        allItemList.clear();
+        currentShowCase.clear();
         Uri uri;
         int indexNumber;
         Cursor cursor;
@@ -68,33 +80,37 @@ public class DataManager {
         uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         cursor = cr.query(uri, null, null, null, null);
 
-        if(cursor != null && cursor.getCount() > 0) {
-            //loop the cursor to save media items.
-            for(cursor.moveToFirst(), indexNumber = 0; !cursor.isAfterLast(); cursor.moveToNext(), indexNumber++) {
-                final String path, name, from, id;
-                path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
-                id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
-                String pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon()
-                                                .appendPath(String.valueOf(id)).build().toString();
-                name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
-                from = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
+        Calendar calendar = Calendar.getInstance();
 
+        int cursorsize = cursor.getCount();
+        if(cursor !=null && cursor.getCount()>0){
+            //loop the cursor to save media items.
+            int pathCursor = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+            int idCursor = cursor.getColumnIndex(MediaStore.Images.Media._ID);
+            int nameCursor = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME);
+            int fromCursor = cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
+            int timeCursor = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN);
+
+            for(cursor.moveToFirst(), indexNumber = 0; !cursor.isAfterLast(); cursor.moveToNext(), indexNumber++){
+                final String path, name, from, id,pathBuild;
+                path = cursor.getString(pathCursor);
+                id = cursor.getString(idCursor);
+                pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
+                name = cursor.getString(nameCursor);
+                from = cursor.getString(fromCursor);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         createCache(pathBuild, id, 1);
                     }
                 }).start();
-
-                thumbnailPath = mContext.getExternalCacheDir() + "/" + id + ".jpg";
+                thumbnailPath = externalCacheDir + "/" + id + ".jpg";
                 MediaFile media_file = new MediaFile(pathBuild,name,1,thumbnailPath);
+                long time = cursor.getLong(timeCursor);
+                //Date date = new Date(time);
 
-                long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN));
-                Date date = new Date(time);
-
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
-                calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH)+1);
+                calendar.setTimeInMillis(time);
+                calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH)+1);
 
 
                 //Log.d(DTAG,"ALBUM Year: " + calendar.get(Calendar.YEAR) + " Month: "+ calendar.get(Calendar.MONTH)+" Day: " + calendar.get((Calendar.DAY_OF_MONTH)));
@@ -137,16 +153,21 @@ public class DataManager {
         //scan videos
         uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         cursor = cr.query(uri, null, null, null, null);
-
+        cursorsize += cursor.getCount();
         if(cursor != null && cursor.getCount() > 0){
+            int pathCursor = cursor.getColumnIndex(MediaStore.Video.Media.DATA);
+            int idCursor = cursor.getColumnIndex(MediaStore.Video.Media._ID);
+            int nameCursor = cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME);
+            int fromCursor = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME);
+            int timeCursor = cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN);
 
             for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext(),indexNumber++){
-                final String path, name, from, id;
-                path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
-                id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
-                String pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
-                name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
-                from = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
+                final String path, name, from, id,pathBuild;
+                path = cursor.getString(pathCursor);
+                id = cursor.getString(idCursor);
+                pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
+                name = cursor.getString(nameCursor);
+                from = cursor.getString(fromCursor);
 
                 new Thread(new Runnable() {
                     @Override
@@ -155,13 +176,13 @@ public class DataManager {
                     }
                 }).start();
 
-                thumbnailPath = mContext.getExternalCacheDir() + "/" + id + ".jpg";
+                thumbnailPath = externalCacheDir + "/" + id + ".jpg";
                 MediaFile media_file = new MediaFile(pathBuild,name,2,thumbnailPath);
 
-                long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN));
-                Date date = new Date(time);
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
+                long time = cursor.getLong(timeCursor);
+                //Date date = new Date(time);
+
+                calendar.setTimeInMillis(time);
                 calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH)+1);
 
                 String realDate = calendar.get(Calendar.YEAR) + "年" + calendar.get(Calendar.MONTH)+ "月" + calendar.get(Calendar.DAY_OF_MONTH) + "日";
@@ -187,7 +208,7 @@ public class DataManager {
                     }
                 }
                 if(!flag_IsInAlbum){
-                    Log.d(DTAG,"ALBUM PATH: "+albumPath);
+                    //Log.d(DTAG,"ALBUM PATH: "+albumPath);
                     currentShowCase.add(new MediaAlbum(albumPath,from, 2, indexNumber, thumbnailPath));
                     broad();
                 }
@@ -199,8 +220,8 @@ public class DataManager {
         }
 
         cursor.close();
-        createShowcaseList();
 
+        Log.d(DTAG,"END OF FOR CURSOR SIZE: "+ cursorsize);
         return true;
     }
 
@@ -229,14 +250,15 @@ public class DataManager {
                 e.printStackTrace();
             }
         }
-
+        Log.d(DTAG,"END3 :");
     }
 
     private void broad() {
         mContext.sendBroadcast(new Intent("com.demo.tikpic.Broadcast.UpdateBroadcast"));
     }
 
-    private void createShowcaseList() {
+    private void createShowcaseList(int showcaseNumber){
+
 
         //showcase index 1: all picture
         createAllPicAlbumShowcase();
@@ -247,7 +269,7 @@ public class DataManager {
         Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
     }
 
-    private void createAllPicAlbumShowcase() {
+    private void createAllPicAlbumShowcase(){
         //create new album for all picture showcase;
         String name = "AllPictures";
         String path = "AllPictures";
@@ -257,43 +279,53 @@ public class DataManager {
         allPictureShowcase.add(singleAlbum);
         GalleryShowCaseList.add(allPictureShowcase);
 
-        for(int i = 0; i < allItemList.size(); i++) {
+        for(int i = 0; i < allItemList.size();i++){
             singleAlbum.addIndex(i);
         }
+
+
     }
 
-    private void createDateAlbumShowcase() {
+    private void createDateAlbumShowcase(){
         List<MediaAlbum> dateList = new ArrayList<>();
         GalleryShowCaseList.add(dateList);
         int indexNumber = 0;
-        for(MediaFile i : allItemList) {
+        for(MediaFile i : allItemList){
 
             boolean haveDateAlbum = false;
-            for(MediaAlbum j: dateList) {
-                //Path is actually the date of the album, we did not save the data in the date but in its path.
-                if(j.getPath().compareTo(i.getDate()) == 0) {
+            for(MediaAlbum j: dateList){
+                //Path is actually the date of the album,we did not save the data in the date but in its path.
+                if(j.getPath().compareTo(i.getDate()) == 0){
                     j.addIndex(indexNumber);
                     haveDateAlbum = true;
                     break;
                 }
             }
-            if(!haveDateAlbum) {
+            if(!haveDateAlbum){
                 Log.d(DTAG,"DATE SHOWCASE ALBUM: "+ i.getDate());
-                dateList.add(new MediaAlbum(i.getDate(), i.getDate(), 1, indexNumber, i.getThumbnailPath()));
+                dateList.add(new MediaAlbum(i.getDate(),i.getDate(),1,indexNumber,i.getThumbnailPath()));
             }
             indexNumber++;
         }
     }
 
-    public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase) {
+    public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase){
         return GalleryShowCaseList.get(showcase);
     }
 
-    public List<Integer> getShowcaseOrAlbumOrIndex(int showcase, int album){
-        return GalleryShowCaseList.get(showcase).get(album).getAlbum();
+    public List<MediaFile> getShowcaseOrAlbumOrIndex(int showcase, int album){
+        //get a particular album of a showcase base on the arguments
+        //and add files into this new album.
+        List<MediaFile> temp = new ArrayList<>();
+        List<Integer> indexes =  GalleryShowCaseList.get(showcase).get(album).getAlbum();
+        for(int i = 0; i < indexes.size();i++){
+            temp.add(allItemList.get(indexes.get(i)));
+        }
+
+        return temp;
     }
 
-    public MediaFile getShowcaseOrAlbumOrIndex(int showcase, int album, int index) {
+    public MediaFile getShowcaseOrAlbumOrIndex(int showcase, int album, int index){
 
         int indexInAll = GalleryShowCaseList.get(showcase).get(album).get(index);
 
