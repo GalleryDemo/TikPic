@@ -151,7 +151,7 @@ public class ImageDisplayView extends View {
     public void setAlbumImage(int pic, int album) {
 
         //设置要显示的相册列表及图片序号
-        mlist = mActivity.data.getShowcaseOrAlbumOrIndex(0,album);
+        //mlist = mActivity.data.getShowcaseOrAlbumOrIndex(0,album);
         index = pic;
         //需要在主列表里做转换
         Uri uri = Uri.parse(mActivity.data.getShowcaseOrAlbumOrIndex(0,album, pic).getPath());

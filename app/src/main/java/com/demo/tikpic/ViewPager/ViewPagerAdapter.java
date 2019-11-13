@@ -30,7 +30,7 @@ public class ViewPagerAdapter extends PagerAdapter {
         mContext = context;
         mActivity = activity_main;
         this.listIndex = listIndex;
-        mList = mActivity.data.getShowcaseOrAlbumOrIndex(0,listIndex);
+        //mList = mActivity.data.getShowcaseOrAlbumOrIndex(0,listIndex);
         Log.d(TAG, "ViewPagerAdapter: "+mList.size());
         this.imgIndex = imgIndex;
         mViewMap = new HashMap<>();

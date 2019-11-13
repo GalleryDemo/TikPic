@@ -64,8 +64,8 @@ public class MainActivity extends AppCompatActivity {
         });
         thread.start();
 pos=new int[]{0,0,0};
-        //replaceFragment(new TimelineFragment(),false);
-        replaceFragment(new ViewPagerFragment(),false);
+        replaceFragment(new TimelineFragment(),false);
+        //replaceFragment(new ViewPagerFragment(),false);
     }
 
     public void replaceFragment(Fragment fragment) {
