@@ -1,44 +1,47 @@
 package com.demo.tikpic.timeline;
 
-import android.database.Cursor;
-import android.provider.MediaStore;
+import android.util.Log;
 
+import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
+import com.demo.tikpic.itemClass.MediaAlbum;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 final class LoadPhotos {
 
     private static final String TAG = "LoadPhotos";
-    private MainActivity activity;
-    private Map<String, List<String>> albumMap;
+    private MainActivity hostActivity;
+    private DataManager dataManager;
+    // private Map<String, List<String>> albumMap;
+    private List<MediaAlbum> albumList;
 
     LoadPhotos(MainActivity activity) {
-        this.activity = activity;
-        albumMap = getAlbumMap();
-
+        this.hostActivity = activity;
+        dataManager = DataManager.getInstance(hostActivity);
+        // albumMap = getAlbumMap();
+        albumList = dataManager.getShowcaseOrAlbumOrIndex(2);
     }
 
-    List<Photo> execute(String key) {
+    List<Photo> getPhotoListInAlbum(int index) {
         final List<Photo> photoList = new ArrayList<>();
-        for (String url : albumMap.get(key)) {
-            photoList.add(new Photo(url));
+
+        for (int i = 0; i < albumList.get(index).getAlbum().size(); i++) {
+            String ThumbnailPath =
+                    dataManager.getShowcaseOrAlbumOrIndex(2, index, i).getThumbnailPath();
+            Log.d(TAG, "getPhotoListInAlbum: ThumbnailPath: " + ThumbnailPath);
+            photoList.add(new Photo(ThumbnailPath));
         }
         return photoList;
     }
 
-
+    /*
     private Map<String, List<String>> getAlbumMap() {
 
         Map<String, List<String>> albumMap = new LinkedHashMap<>();
 
-        Cursor cursor = activity.getContentResolver().query(
+        Cursor cursor = hostActivity.getContentResolver().query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 new String[] { MediaStore.Images.Media._ID,
                         MediaStore.Images.Media.DATE_TAKEN },
@@ -77,9 +80,14 @@ final class LoadPhotos {
 
         return albumMap;
     }
+    */
 
-    Set<String> getAlbumList() {
-        return albumMap.keySet();
+    public int getAlbumListSize() {
+        return albumList.size();
+    }
+
+    public String getAlbumName(int i) {
+        return albumList.get(i).getName();
     }
 
 }

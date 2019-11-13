@@ -6,25 +6,33 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
 import com.demo.tikpic.ViewPager.ViewPagerFragment;
+import com.demo.tikpic.itemClass.MediaFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     private MainActivity hostActivity;
-    private List<String> imageUrlList;
+    private List<Integer> imageUrlList;
+    private List<MediaFile> mediaFileList;
+    private DataManager dataManager;
 
-    DataAdapter(MainActivity activity, List<String> UrlList) {
+    DataAdapter(MainActivity activity) {
         hostActivity = activity;
-        imageUrlList = UrlList;
+        dataManager = DataManager.getInstance(hostActivity);
+        imageUrlList = dataManager.getShowcaseOrAlbumOrIndex(1, 0);
+        mediaFileList = new ArrayList<>();
+        for(Integer i : imageUrlList) {
+            mediaFileList.add(dataManager.getShowcaseOrAlbumOrIndex(1, 0, i));
+        }
     }
 
     @NonNull
@@ -40,7 +48,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
         Glide.with(hostActivity)
                 .asBitmap()
-                .load(imageUrlList.get(position))
+                .load(mediaFileList.get(position).getPath())
                 .into(holder.mImageView);
     }
 
@@ -64,12 +72,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
         @Override
         public void onClick(View v) {
-            FragmentManager fragmentManager = hostActivity.getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.mainLayout_FrameLayout, new ViewPagerFragment());
-            fragmentTransaction.addToBackStack(null);
-
-            fragmentTransaction.commit();
+            hostActivity.replaceFragment(new ViewPagerFragment());
         }
     }
 

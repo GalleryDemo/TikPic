@@ -18,7 +18,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.demo.tikpic.ViewPager.ViewPagerFragment;
 import com.demo.tikpic.timeline.TimelineFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,7 +42,8 @@ public class MainActivity extends AppCompatActivity {
         getWindowInfo();
 
 
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 ActivityCompat.requestPermissions(MainActivity.this,
                         new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         thread.start();
 pos=new int[]{0,0,0};
         //replaceFragment(new TimelineFragment(),false);
-        replaceFragment(new ViewPagerFragment(),false);
+        replaceFragment(new TimelineFragment(),false);
     }
 
     public void replaceFragment(Fragment fragment) {

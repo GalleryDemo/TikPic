@@ -1,9 +1,7 @@
 package com.demo.tikpic.gallery;
 
 
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class GalleryFragment extends Fragment {
 
     private MainActivity hostActivity;
@@ -30,17 +25,18 @@ public class GalleryFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_gallery, container, false);
 
         recyclerView = root.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new DataAdapter(hostActivity, getImageUrlList()));
+        recyclerView.setAdapter(new DataAdapter(hostActivity));
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 4);
         recyclerView.setLayoutManager(gridLayoutManager);
 
         return root;
     }
 
+    /*
     private List<String> getImageUrlList() {
         List<String> imageList = new ArrayList<>();
-        Cursor cursor = getActivity().getContentResolver().query(
+        Cursor cursor = hostActivity.getContentResolver().query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 new String[]{MediaStore.Images.Media._ID},
                 null,
@@ -56,5 +52,5 @@ public class GalleryFragment extends Fragment {
         cursor.close();
         return imageList;
     }
-
+    */
 }
