@@ -205,7 +205,6 @@ public class DataManager {
                     if (i.getPath().compareTo(albumPath) == 0) {
                         i.addIndex(indexNumber);
                         if(i.getType() == 1){
-                            //??
                             i.setType(3);
                         }
                         flag_IsInAlbum = true;
@@ -225,7 +224,7 @@ public class DataManager {
         }
 
         cursor.close();
-
+        createShowcaseList();
         Log.d(DTAG,"END OF FOR CURSOR SIZE: "+ cursorsize);
         return true;
     }
@@ -255,6 +254,7 @@ public class DataManager {
                 e.printStackTrace();
             }
         }
+
         Log.d(DTAG,"END3 :");
     }
 
@@ -262,16 +262,26 @@ public class DataManager {
         mContext.sendBroadcast(new Intent("com.demo.tikpic.Broadcast.UpdateBroadcast"));
     }
 
-    private void createShowcaseList(int showcaseNumber){
-
-
+    private void createShowcaseList(){
         //showcase index 1: all picture
-        createAllPicAlbumShowcase();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                createAllPicAlbumShowcase();
+            }
+        }).start();
         //showcase index 2: date list
-        createDateAlbumShowcase();
-        Log.d(DTAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
-        Log.d(DTAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
-        Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                createDateAlbumShowcase();
+            }
+        }).start();
+
+
+//        Log.d(DTAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
+//        Log.d(DTAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
+//        Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
     }
 
     private void createAllPicAlbumShowcase(){
@@ -282,7 +292,9 @@ public class DataManager {
         //create a showcase that only holds one album which is the "singleAlbum"
         List<MediaAlbum> allPictureShowcase = new ArrayList<>();
         allPictureShowcase.add(singleAlbum);
-        GalleryShowCaseList.add(allPictureShowcase);
+        synchronized (GalleryShowCaseList){
+            GalleryShowCaseList.add(allPictureShowcase);
+        }
 
         for(int i = 0; i < allItemList.size();i++){
             singleAlbum.addIndex(i);
@@ -293,7 +305,10 @@ public class DataManager {
 
     private void createDateAlbumShowcase(){
         List<MediaAlbum> dateList = new ArrayList<>();
-        GalleryShowCaseList.add(dateList);
+        synchronized (GalleryShowCaseList){
+            GalleryShowCaseList.add(dateList);
+        }
+
         int indexNumber = 0;
         for(MediaFile i : allItemList){
 
@@ -313,6 +328,7 @@ public class DataManager {
             indexNumber++;
         }
     }
+
 
     public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase){
         return GalleryShowCaseList.get(showcase);
