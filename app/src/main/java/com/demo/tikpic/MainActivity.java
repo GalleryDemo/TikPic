@@ -18,8 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.demo.tikpic.ViewPager.ViewPagerFragment;
-import com.demo.tikpic.timeline.TimelineFragment;
+import com.demo.tikpic.gallery.GalleryFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     public int pos[]={-1,-1,-1};
     public int mScreenWidth, mScreenHeight, mScreenOrientation;
 
+
+    // test
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         thread.start();
 pos=new int[]{0,0,0};
         //replaceFragment(new TimelineFragment(),false);
-        replaceFragment(new ViewPagerFragment(),false);
+        replaceFragment(new GalleryFragment(),false);
     }
 
     public void replaceFragment(Fragment fragment) {
