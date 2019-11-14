@@ -15,11 +15,19 @@ import com.demo.tikpic.itemClass.MediaAlbum;
 import com.demo.tikpic.itemClass.MediaFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class DataManager {
     private static final String DTAG = "DataManager";
@@ -32,6 +40,7 @@ public class DataManager {
     //the current show case
     private List<MediaAlbum> currentShowCase;
     private static DataManager sDataManager;
+    private ExecutorService cachedThreadPool;
 
     private DataManager(Context context){
         mContext = context.getApplicationContext();
@@ -41,12 +50,12 @@ public class DataManager {
         GalleryShowCaseList.add(currentShowCase);
         Log.d(DTAG,"START ALLLIST SIZE: " + allItemList.size());
 
-
+        scanMediaFiles();
         new Thread(new Runnable() {
             @Override
             public void run() {
 
-                scanMediaFiles();
+
             }
         }).start();
 
@@ -69,6 +78,16 @@ public class DataManager {
     public boolean scanMediaFiles(){
         allItemList.clear();
         currentShowCase.clear();
+        Log.d(DTAG,"MAXED POOL SIZE: " + Runtime.getRuntime().availableProcessors()*2);
+        int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+        int corePoolSize = Math.max(2, Math.min(CPU_COUNT - 1, 4));
+        cachedThreadPool = new ThreadPoolExecutor(
+                corePoolSize,
+                Integer.MAX_VALUE,
+                20L, TimeUnit.SECONDS,
+                new SynchronousQueue<>(),
+                Executors.defaultThreadFactory());
+
         Uri uri;
         int indexNumber;
         Cursor cursor;
@@ -98,12 +117,12 @@ public class DataManager {
                 pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
                 name = cursor.getString(nameCursor);
                 from = cursor.getString(fromCursor);
-                new Thread(new Runnable() {
+                cachedThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
                         createCache(pathBuild, id, 1);
                     }
-                }).start();
+                });
                 thumbnailPath = externalCacheDir + "/" + id + ".jpg";
                 MediaFile media_file = new MediaFile(pathBuild,name,1,thumbnailPath);
                 long time = cursor.getLong(timeCursor);
@@ -169,13 +188,12 @@ public class DataManager {
                 name = cursor.getString(nameCursor);
                 from = cursor.getString(fromCursor);
 
-                new Thread(new Runnable() {
+                cachedThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
                         createCache(pathBuild, id, 2);
                     }
-                }).start();
-
+                });
                 thumbnailPath = externalCacheDir + "/" + id + ".jpg";
                 MediaFile media_file = new MediaFile(pathBuild,name,2,thumbnailPath);
 
@@ -220,6 +238,7 @@ public class DataManager {
 
         cursor.close();
         createShowcaseList();
+
         Log.d(DTAG,"END OF FOR CURSOR SIZE: "+ cursorsize);
         return true;
     }
@@ -228,7 +247,13 @@ public class DataManager {
     private void createCache(String path, String id, int type) {
         File file = new File(mContext.getExternalCacheDir(), id + ".jpg");
         if(!file.exists()){
-            Bitmap mBitmap = BitmapFactory.decodeFile(path);
+            InputStream fis = null;
+            try {
+                fis = mContext.getContentResolver().openInputStream(Uri.parse(path));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            Bitmap mBitmap = BitmapFactory.decodeStream(fis, null, null);
             if (type == 1) {
                 mBitmap = ThumbnailUtils.extractThumbnail(mBitmap, 1080 / 2, 1080 / 2);
             } else {
@@ -259,24 +284,16 @@ public class DataManager {
 
     private void createShowcaseList(){
         //showcase index 1: all picture
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                createAllPicAlbumShowcase();
-            }
-        }).start();
+        Log.d(DTAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
+        createAllPicAlbumShowcase();
+        Log.d(DTAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
         //showcase index 2: date list
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                createDateAlbumShowcase();
-            }
-        }).start();
+        createDateAlbumShowcase();
+        Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
 
 
-//        Log.d(DTAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
-//        Log.d(DTAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
-//        Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
+//
+//
     }
 
     private void createAllPicAlbumShowcase(){
@@ -287,10 +304,7 @@ public class DataManager {
         //create a showcase that only holds one album which is the "singleAlbum"
         List<MediaAlbum> allPictureShowcase = new ArrayList<>();
         allPictureShowcase.add(singleAlbum);
-        synchronized (GalleryShowCaseList){
-            GalleryShowCaseList.add(allPictureShowcase);
-        }
-
+        GalleryShowCaseList.add(allPictureShowcase);
         for(int i = 0; i < allItemList.size();i++){
             singleAlbum.addIndex(i);
         }
@@ -300,10 +314,7 @@ public class DataManager {
 
     private void createDateAlbumShowcase(){
         List<MediaAlbum> dateList = new ArrayList<>();
-        synchronized (GalleryShowCaseList){
-            GalleryShowCaseList.add(dateList);
-        }
-
+        GalleryShowCaseList.add(dateList);
         int indexNumber = 0;
         for(MediaFile i : allItemList){
 
@@ -347,4 +358,11 @@ public class DataManager {
 
         return allItemList.get(indexInAll);
     }
+
+    public List<Integer> getShowcaseOrAlbumOrIndexInt(int showcase, int album){
+        //get a particular album of a showcase base on the arguments
+        //and add files into this new album.
+        return GalleryShowCaseList.get(showcase).get(album).getAlbum();
+    }
+
 }
