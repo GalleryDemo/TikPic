@@ -3,8 +3,10 @@ package com.demo.tikpic;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,17 +22,18 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.demo.tikpic.gallery.GalleryFragment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private String TAG = "MainActivity";
     private Context mContext;
+    private List<String> imageUrlList;
 
     public DataManager data;
-    public int pos[]={-1,-1,-1};
+    public int[] pos= {-1, -1, -1};
     public int mScreenWidth, mScreenHeight, mScreenOrientation;
-
-
-    // test
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
 
         getWindowInfo();
 
-
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 ActivityCompat.requestPermissions(MainActivity.this,
                         new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
@@ -52,20 +55,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             begin();
         }
-
     }
 
     private void begin() {
-        data = DataManager.getInstance(this);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
 
-            }
-        });
-        thread.start();
-pos=new int[]{0,0,0};
-        //replaceFragment(new TimelineFragment(),false);
+        imageUrlList = queryImageUrlList();
+
         replaceFragment(new GalleryFragment(),false);
     }
 
@@ -93,7 +88,6 @@ pos=new int[]{0,0,0};
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-
         }
 
     }
@@ -122,4 +116,33 @@ pos=new int[]{0,0,0};
             }
         }
     }
+
+    private List<String> queryImageUrlList() {
+
+        List<String> imageUrlList = new ArrayList<>();
+
+        Cursor cursor = getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media._ID},
+                null,
+                null,
+                null);
+
+        if (cursor != null) {
+            while(cursor.moveToNext()) {
+                String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                String uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        .buildUpon().appendPath(id).build().toString();
+                imageUrlList.add(uri);
+            }
+            cursor.close();
+        }
+
+        return imageUrlList;
+    }
+
+    public List<String> getImageUrlList() {
+        return imageUrlList;
+    }
+
 }

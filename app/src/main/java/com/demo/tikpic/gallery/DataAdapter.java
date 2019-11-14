@@ -1,5 +1,6 @@
 package com.demo.tikpic.gallery;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,26 +9,27 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
+import com.demo.tikpic.BitmapWorkerTask;
 import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
 import com.demo.tikpic.ViewPager.ViewPagerFragment;
-import com.demo.tikpic.itemClass.MediaFile;
 
 import java.util.List;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
+    private static final String TAG = "myDataAdapter";
     private MainActivity hostActivity;
-    private List<MediaFile> imageUrlList;
+    // private List<MediaFile> imageUrlList;
     private DataManager dataManager;
+    private List<String> imageUrlList;
 
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
-        dataManager = DataManager.getInstance(hostActivity);
-        imageUrlList = dataManager.getShowcaseOrAlbumOrIndex(1, 0);
-
+        // dataManager = DataManager.getInstance(hostActivity);
+        // imageUrlList = dataManager.getShowcaseOrAlbumOrIndex(1, 0);
+        imageUrlList = hostActivity.getImageUrlList();
     }
 
     @NonNull
@@ -41,10 +43,19 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
+        /*
         Glide.with(hostActivity)
                 .asBitmap()
-                .load(imageUrlList.get(position).getThumbnailPath())
+                .load(imageUrlList.get(position))
                 .into(holder.mImageView);
+        */
+        BitmapWorkerTask workerTask = new BitmapWorkerTask(hostActivity, holder.mImageView);
+
+
+        Log.d(TAG, "onBindViewHolder: url: " + imageUrlList.get(position));
+
+        workerTask.execute(imageUrlList.get(position));
+
     }
 
     @Override
@@ -72,3 +83,5 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     }
 
 }
+
+
