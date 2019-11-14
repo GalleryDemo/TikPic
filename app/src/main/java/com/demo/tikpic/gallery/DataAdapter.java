@@ -15,24 +15,19 @@ import com.demo.tikpic.R;
 import com.demo.tikpic.ViewPager.ViewPagerFragment;
 import com.demo.tikpic.itemClass.MediaFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     private MainActivity hostActivity;
-    private List<Integer> imageUrlList;
-    private List<MediaFile> mediaFileList;
+    private List<MediaFile> imageUrlList;
     private DataManager dataManager;
 
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
         dataManager = DataManager.getInstance(hostActivity);
         imageUrlList = dataManager.getShowcaseOrAlbumOrIndex(1, 0);
-        mediaFileList = new ArrayList<>();
-        for(Integer i : imageUrlList) {
-            mediaFileList.add(dataManager.getShowcaseOrAlbumOrIndex(1, 0, i));
-        }
+
     }
 
     @NonNull
@@ -48,7 +43,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
         Glide.with(hostActivity)
                 .asBitmap()
-                .load(mediaFileList.get(position).getPath())
+                .load(imageUrlList.get(position).getThumbnailPath())
                 .into(holder.mImageView);
     }
 

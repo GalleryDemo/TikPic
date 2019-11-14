@@ -32,25 +32,4 @@ public class GalleryFragment extends Fragment {
 
         return root;
     }
-
-    /*
-    private List<String> getImageUrlList() {
-        List<String> imageList = new ArrayList<>();
-        Cursor cursor = hostActivity.getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                new String[]{MediaStore.Images.Media._ID},
-                null,
-                null,
-                null);
-
-        while (cursor.moveToNext()) {
-            String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
-            String uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                    .buildUpon().appendPath(String.valueOf(id)).build().toString();
-            imageList.add(uri);
-        }
-        cursor.close();
-        return imageList;
-    }
-    */
 }
