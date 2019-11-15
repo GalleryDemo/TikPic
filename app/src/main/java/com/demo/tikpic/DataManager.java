@@ -25,7 +25,6 @@ import java.util.List;
 
 public class DataManager {
     private static final String DTAG = "DataManager";
-    private static final String TAG = "DataManager1";
 
     //stores all show case albums.
     private List<List<MediaAlbum>> GalleryShowCaseList;

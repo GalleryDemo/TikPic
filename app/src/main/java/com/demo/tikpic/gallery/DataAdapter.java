@@ -24,6 +24,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
+        imageUrlList = hostActivity.getImagePaths();
     }
 
     @NonNull

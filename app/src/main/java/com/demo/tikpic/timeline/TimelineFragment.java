@@ -34,10 +34,10 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
         sectionedAdapter = new SectionedRecyclerViewAdapter();
 
         final LoadPhotos loadPhotos = new LoadPhotos(hostActivity);
-        for(int i = 0; i < loadPhotos.getAlbumListSize(); i++) {
+        for(String albumName : loadPhotos.getAlbumKeySet()) {
             sectionedAdapter.addSection(
-                    new PhotoSection(loadPhotos.getAlbumName(i),
-                            loadPhotos.getPhotoListInAlbum(i),
+                    new PhotoSection(albumName,
+                            loadPhotos.getPhotoListInAlbum(albumName),
                             hostActivity, this));
         }
 
@@ -65,10 +65,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
                                         @NonNull final PhotoSection section) {
         Toast.makeText(
                 getContext(),
-                String.format(
-                        "Clicked on more button from the header of Section %s",
-                        sectionTitle
-                ),
+                String.format("Clicked on more button from the header of Section %s", sectionTitle),
                 Toast.LENGTH_SHORT
         ).show();
     }
@@ -82,9 +79,6 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
                         "Clicked on position #%s of Section %s",
                         sectionedAdapter.getPositionInSection(itemAdapterPosition),
                         sectionTitle), Toast.LENGTH_SHORT).show();
-
-
-
     }
 
 }

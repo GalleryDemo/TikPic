@@ -1,42 +1,50 @@
 package com.demo.tikpic.timeline;
 
-import android.util.Log;
+import android.database.Cursor;
+import android.provider.MediaStore;
 
-import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
-import com.demo.tikpic.itemClass.MediaAlbum;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 final class LoadPhotos {
 
     private static final String TAG = "LoadPhotos";
     private MainActivity hostActivity;
-    private DataManager dataManager;
-    // private Map<String, List<String>> albumMap;
-    private List<MediaAlbum> albumList;
+    // private DataManager dataManager;
+    private Map<String, List<String>> albumMap;
+    // private List<MediaAlbum> albumList;
 
     LoadPhotos(MainActivity activity) {
         this.hostActivity = activity;
-        dataManager = DataManager.getInstance(hostActivity);
-        // albumMap = getAlbumMap();
-        albumList = dataManager.getShowcaseOrAlbumOrIndex(2);
+        // dataManager = DataManager.getInstance(hostActivity);
+        albumMap = getAlbumMap();
+        // albumList = dataManager.getShowcaseOrAlbumOrIndex(2);
     }
 
-    List<Photo> getPhotoListInAlbum(int index) {
+    List<Photo> getPhotoListInAlbum(String key) {
         final List<Photo> photoList = new ArrayList<>();
-
+        /*
         for (int i = 0; i < albumList.get(index).getAlbum().size(); i++) {
+            String ThumbnailPath = dataManager.getShowcaseOrAlbumOrIndex(2, index, i).getThumbnailPath();
             String ThumbnailPath =
-                    dataManager.getShowcaseOrAlbumOrIndex(2, index, i).getThumbnailPath();
             Log.d(TAG, "getPhotoListInAlbum: ThumbnailPath: " + ThumbnailPath);
             photoList.add(new Photo(ThumbnailPath));
+        }
+         */
+        for(String uri : albumMap.get(key)) {
+            photoList.add(new Photo(uri));
         }
         return photoList;
     }
 
-    /*
+
     private Map<String, List<String>> getAlbumMap() {
 
         Map<String, List<String>> albumMap = new LinkedHashMap<>();
@@ -80,14 +88,15 @@ final class LoadPhotos {
 
         return albumMap;
     }
-    */
 
+    /*
     public int getAlbumListSize() {
         return albumList.size();
     }
+    */
 
-    public String getAlbumName(int i) {
-        return albumList.get(i).getName();
+    public Set<String> getAlbumKeySet() {
+        return albumMap.keySet();
     }
 
 }
