@@ -58,7 +58,7 @@ public class DataManager {
         Log.d(DTAG,"END OF scanfile :");
     }
 
-    public static DataManager getInstance(Context context){
+    public static DataManager getInstance(Context context) {
         if(sDataManager == null){
             sDataManager = new DataManager(context);
         }
