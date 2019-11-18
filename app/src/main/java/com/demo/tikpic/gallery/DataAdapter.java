@@ -32,7 +32,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 import static android.os.Environment.isExternalStorageRemovable;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
@@ -49,6 +52,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     private boolean diskCacheStarting = true;
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 50; // 50MB
     private static final String DISK_CACHE_SUBDIR = "thumbnails";
+
+    private ExecutorService fixedThreadPool;
 
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
@@ -69,6 +74,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         File cacheDir = getDiskCacheDir(hostActivity, DISK_CACHE_SUBDIR);
         new InitDiskCacheTask().execute(cacheDir);
 
+        fixedThreadPool = Executors.newFixedThreadPool(8);
     }
 
     @NonNull
@@ -103,7 +109,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             else {
                 // imageView.setImageResource(R.drawable.image_placeholder);
                 BitmapWorkerTask workerTask = new BitmapWorkerTask(imageView);
-                workerTask.execute(String.valueOf(position));
+                workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, String.valueOf(position));
                 Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
             }
         }
@@ -143,7 +149,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                     DiskLruCache.Editor editor = diskLruCache.edit(key);
 
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 30, byteArrayOutputStream);
                     byte[]bytes = byteArrayOutputStream.toByteArray();
                     String encodedBitmap = Base64.encodeToString(bytes,Base64.DEFAULT);
 
@@ -223,17 +229,19 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
 
-        private static final String TAG = "myAsyncTask";
-        private WeakReference<ImageView> imageView;
+        // private static final String TAG = "myAsyncTask";
+        private WeakReference<ImageView> imageViewWeakRef;
         private InputStream is = null;
 
         BitmapWorkerTask(ImageView iv) {
-            imageView = new WeakReference<>(iv);
+            imageViewWeakRef = new WeakReference<>(iv);
         }
 
         // Decode image in background.
         @Override
         protected Bitmap doInBackground(String... params) {
+
+            Log.d(TAG, "loadBitmap: START***" + params[0]);
 
             try {
                 int position = Integer.valueOf(params[0]);
@@ -242,10 +250,14 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            Bitmap bitmap = decodeBitmapFromStream(is, 200, 200);
-            Log.d(TAG, "loadBitmap: START***" + params[0]);
-            addBitmapToCache(params[0], bitmap); // params[1]: String.valueOf(position)
+            final Bitmap bitmap = decodeBitmapFromStream(is, 200, 200);
+
+            fixedThreadPool.submit(() -> {
+                addBitmapToCache(params[0], bitmap); // params[1]: String.valueOf(position)
+            });
+
             Log.d(TAG, "loadBitmap: END***" + params[0]);
+
             return bitmap;
         }
 
@@ -259,7 +271,15 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                     e.printStackTrace();
                 }
             }
-            if (bitmap != null) { imageView.get().setImageBitmap(bitmap); }
+            if (bitmap != null && imageViewWeakRef != null) {
+                final ImageView imageView = imageViewWeakRef.get();
+                if(imageView != null) {
+                    imageView.setImageBitmap(bitmap);
+                }
+                else {
+                    Log.d(TAG, "onPostExecute: imageView already gone");
+                }
+            }
         }
 
         private Bitmap decodeBitmapFromStream(InputStream is, int reqWidth, int reqHeight) {
@@ -269,9 +289,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = false;
 
-            BitmapRegionDecoder originalImage = null;
-            int height = 0;
-            int width = 0;
+            BitmapRegionDecoder originalImage;
+            int width, height;
             try {
                 originalImage = BitmapRegionDecoder.newInstance(is, false);
                 height = originalImage.getHeight();
