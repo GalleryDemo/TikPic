@@ -27,9 +27,6 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.demo.tikpic.ViewPager.ViewPagerFragment;
-import com.demo.tikpic.gallery.GalleryFragment;
-import com.demo.tikpic.timeline.TimelineFragment;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
@@ -83,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
             imagePaths = queryAllImages();
         }
     }
-
 
     public void replaceFragment(Fragment fragment) {
         replaceFragment(fragment, true);

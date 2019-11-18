@@ -60,7 +60,8 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
 
     private Bitmap decodeBitmapFromStream(InputStream is, int reqWidth, int reqHeight) {
         Log.d(TAG, "decodeBitmapFromStream: start " + is);
-        Bitmap bitmap;
+        Bitmap bitmap = null;
+
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
         BitmapRegionDecoder originalImage = null;
@@ -71,10 +72,10 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
             height = originalImage.getHeight();
             width = originalImage.getWidth();
             options.inSampleSize = getInSampleSize(width, height, reqWidth, reqHeight);
+            bitmap = originalImage.decodeRegion(new Rect(0,0, width, height), options);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        bitmap = originalImage.decodeRegion(new Rect(0,0, width, height), options);
 
         if(bitmap == null) {
             Log.d(TAG, "decodeBitmapFromStream: bitmap is null");

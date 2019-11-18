@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 
+import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.itemClass.MediaFile;
 
@@ -30,7 +31,7 @@ public class ViewPagerAdapter extends PagerAdapter {
         mContext = context;
         mActivity = activity_main;
         this.listIndex = listIndex;
-        mList = mActivity.data.getShowcaseOrAlbumOrIndex(0,listIndex);
+        mList = DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,listIndex);
         Log.d(TAG, "ViewPagerAdapter: "+mList.size());
         this.imgIndex = imgIndex;
         mViewMap = new HashMap<>();
@@ -50,7 +51,7 @@ public class ViewPagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
 
-        MediaFile item = mActivity.data.getShowcaseOrAlbumOrIndex(0,0,0);
+        MediaFile item = DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,0,0);
         if(item.getType()==1){
             Log.d(TAG, "instantiateItem: "+position);
 

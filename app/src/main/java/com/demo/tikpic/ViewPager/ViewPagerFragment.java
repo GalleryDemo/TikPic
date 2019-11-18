@@ -11,11 +11,9 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 
 public class ViewPagerFragment extends Fragment {
@@ -52,7 +50,7 @@ public class ViewPagerFragment extends Fragment {
         }
         mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //隐藏状态栏
 
-        Log.d(TAG, "onCreateView: "+mActivity.data.getShowcaseOrAlbumOrIndex(0).size());
+        Log.d(TAG, "onCreateView: " + DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0).size());
 
         view = new ViewPager(mContext);
         ViewPagerAdapter mAdapter = new ViewPagerAdapter(mContext,mActivity,0,0);

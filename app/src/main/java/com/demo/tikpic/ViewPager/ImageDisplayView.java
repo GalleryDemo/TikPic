@@ -18,9 +18,9 @@ import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
+import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -154,7 +154,8 @@ public class ImageDisplayView extends View {
         //mlist = mActivity.data.getShowcaseOrAlbumOrIndex(0,album);
         index = pic;
         //需要在主列表里做转换
-        Uri uri = Uri.parse(mActivity.data.getShowcaseOrAlbumOrIndex(0,album, pic).getPath());
+        Uri uri = Uri.parse(DataManager.getInstance(mActivity)
+                .getShowcaseOrAlbumOrIndex(0,album, pic).getPath());
 
         Log.d(TAG, "setAlbumImage: "+uri.getPath());
         setImagePath(uri);

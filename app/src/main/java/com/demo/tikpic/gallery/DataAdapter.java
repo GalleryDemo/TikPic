@@ -1,6 +1,5 @@
 package com.demo.tikpic.gallery;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,8 +39,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
         BitmapWorkerTask workerTask = new BitmapWorkerTask(hostActivity, holder.mImageView);
         workerTask.execute(imageUrlList.get(position));
-        Log.d(TAG, "onBindViewHolder: url: " + imageUrlList.get(position));
-        Log.d(TAG, "onBindViewHolder: position: " + position);
+        // Log.d(TAG, "onBindViewHolder: url: " + imageUrlList.get(position));
+        // Log.d(TAG, "onBindViewHolder: position: " + position);
     }
 
     @Override

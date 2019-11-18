@@ -21,9 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
@@ -90,7 +88,6 @@ public class DataManager {
                 new SynchronousQueue<>(),
                 Executors.defaultThreadFactory());
 
-        Uri uri;
         int indexNumber;
         Cursor cursor;
         String thumbnailPath;
@@ -98,55 +95,46 @@ public class DataManager {
         ContentResolver cr = mContext.getContentResolver();
 
         //scan images
-        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        cursor = cr.query(uri, null, null, null, null);
-
-        Calendar calendar = Calendar.getInstance();
+        cursor = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[] {MediaStore.Images.Media._ID,
+                        MediaStore.Images.Media.DISPLAY_NAME,
+                        MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+                        MediaStore.Images.Media.DATA},
+                null, null, null);
 
         int cursorsize = cursor.getCount();
         if(cursor != null && cursor.getCount()>0) {
             //loop the cursor to save media items.
 
             for(cursor.moveToFirst(), indexNumber = 0; !cursor.isAfterLast(); cursor.moveToNext(), indexNumber++){
-                final String path, name, from, id,pathBuild;
+                final String path, name, from, id, pathBuild;
                 path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
                 id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
                 pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon()
-                        .appendPath(String.valueOf(id)).build().toString();
+                        .appendPath(id).build().toString();
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
                 from = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
 
+                cachedThreadPool.execute(() -> createCache(pathBuild, id, 1));
 
-                new Thread(new Runnable() {
-                path = cursor.getString(pathCursor);
-                id = cursor.getString(idCursor);
-                pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
-                name = cursor.getString(nameCursor);
-                from = cursor.getString(fromCursor);
-                cachedThreadPool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        createCache(pathBuild, id, 1);
-                    }
-                });
                 thumbnailPath = externalCacheDir + "/" + id + ".jpg";
                 MediaFile media_file = new MediaFile(pathBuild,name,1,thumbnailPath);
                 long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN));
-                //Date date = new Date(time);
 
+                Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(time);
-                calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH)+1);
-
+                calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH) + 1);
 
                 //Log.d(DTAG,"ALBUM Year: " + calendar.get(Calendar.YEAR) + " Month: "+ calendar.get(Calendar.MONTH)+" Day: " + calendar.get((Calendar.DAY_OF_MONTH)));
-                String realDate = calendar.get(Calendar.YEAR) + "年" + calendar.get(Calendar.MONTH)+ "月" + calendar.get(Calendar.DAY_OF_MONTH) + "日";
+                String realDate = calendar.get(Calendar.YEAR) + "年" +
+                                    calendar.get(Calendar.MONTH)+ "月" +
+                                    calendar.get(Calendar.DAY_OF_MONTH) + "日";
 
                 media_file.setDate(realDate);
                 allItemList.add(media_file);
 
                 //creating albums base on the files' folder
                 String albumPath = path.substring(0, path.length() - name.length() - 1);
-
 
 
                 boolean flag_IsInAlbum = false;
@@ -160,9 +148,8 @@ public class DataManager {
                 }
                 //the current show case is one of the showcases, which will display all the default folders(screenshot/camera/example) from phone.
                 //here we are only adding these default sub-albums to the current showcase, which maybe the initial showcase.
-                if(!flag_IsInAlbum){
+                if(!flag_IsInAlbum) {
                     currentShowCase.add(new MediaAlbum(albumPath,from,1, indexNumber, thumbnailPath));
-                    // broad();
                 }
             }
 
@@ -243,7 +230,6 @@ public class DataManager {
         return true;
     }
 
-
     private void createCache(String path, String id, int type) {
 
         File file = new File(mContext.getExternalCacheDir(), id + ".jpg");
@@ -294,7 +280,7 @@ public class DataManager {
         mContext.sendBroadcast(new Intent("com.demo.tikpic.Broadcast.UpdateBroadcast"));
     }
 
-    private void createShowcaseList(){
+    private void createShowcaseList() {
         //showcase index 1: all picture
         Log.d(DTAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
         createAllPicAlbumShowcase();
@@ -302,13 +288,9 @@ public class DataManager {
         //showcase index 2: date list
         createDateAlbumShowcase();
         Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
-
-
-//
-//
     }
 
-    private void createAllPicAlbumShowcase(){
+    private void createAllPicAlbumShowcase() {
         //create new album for all picture showcase;
         String name = "AllPictures";
         String path = "AllPictures";
@@ -324,7 +306,7 @@ public class DataManager {
 
     }
 
-    private void createDateAlbumShowcase(){
+    private void createDateAlbumShowcase() {
         List<MediaAlbum> dateList = new ArrayList<>();
         GalleryShowCaseList.add(dateList);
         int indexNumber = 0;
@@ -347,12 +329,11 @@ public class DataManager {
         }
     }
 
-
-    public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase){
+    public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase) {
         return GalleryShowCaseList.get(showcase);
     }
 
-    public List<MediaFile> getShowcaseOrAlbumOrIndex(int showcase, int album){
+    public List<MediaFile> getShowcaseOrAlbumOrIndex(int showcase, int album) {
         //get a particular album of a showcase base on the arguments
         //and add files into this new album.
         List<MediaFile> temp = new ArrayList<>();
@@ -364,14 +345,14 @@ public class DataManager {
         return temp;
     }
 
-    public MediaFile getShowcaseOrAlbumOrIndex(int showcase, int album, int index){
+    public MediaFile getShowcaseOrAlbumOrIndex(int showcase, int album, int index) {
 
         int indexInAll = GalleryShowCaseList.get(showcase).get(album).get(index);
 
         return allItemList.get(indexInAll);
     }
 
-    public List<Integer> getShowcaseOrAlbumOrIndexInt(int showcase, int album){
+    public List<Integer> getShowcaseOrAlbumOrIndexInt(int showcase, int album) {
         //get a particular album of a showcase base on the arguments
         //and add files into this new album.
         return GalleryShowCaseList.get(showcase).get(album).getAlbum();
