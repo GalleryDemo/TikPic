@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_gallery, R.id.nav_timeline)
-                .setDrawerLayout(drawer).build();
+                                                        .setDrawerLayout(drawer).build();
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
@@ -60,9 +61,6 @@ public class MainActivity extends AppCompatActivity {
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-        }
-        else {
-            DataManager.getInstance(this);
         }
     }
 
@@ -111,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "存储空间读写权限申请成功", Toast.LENGTH_SHORT).show();
                 DataManager.getInstance(this);
+
             } else {
                 Toast.makeText(this, "存储空间读写权限申请失败", Toast.LENGTH_SHORT).show();
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);

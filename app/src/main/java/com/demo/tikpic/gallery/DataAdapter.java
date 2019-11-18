@@ -40,7 +40,7 @@ import static android.os.Environment.isExternalStorageRemovable;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
-    private static final String TAG = "myDataAdapter";
+    private static final String TAG = "MainActivity";
     private MainActivity hostActivity;
     private DataManager dataManager;
     private List<String> imageUrlList;
@@ -57,8 +57,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
+
         dataManager = DataManager.getInstance(hostActivity);
         imageUrlList = dataManager.getImagePaths();
+
+        Log.d(TAG, "DataAdapter: size of imageurllist " + imageUrlList.size());
+
 
         // initialize memory cache
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024); // in KiloBytes
