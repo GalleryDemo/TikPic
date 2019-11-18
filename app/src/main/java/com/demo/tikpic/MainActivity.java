@@ -3,12 +3,9 @@ package com.demo.tikpic;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -29,19 +26,11 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity {
 
-    private String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
+
     private AppBarConfiguration mAppBarConfiguration;
-
-    public List<String> getImagePaths() {
-        return imagePaths;
-    }
-
-    private List<String> imagePaths;
 
     public int[] pos= {-1, -1, -1};
     public int mScreenWidth, mScreenHeight, mScreenOrientation;
@@ -59,25 +48,21 @@ public class MainActivity extends AppCompatActivity {
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_gallery,
-                R.id.nav_timeline)
-                .setDrawerLayout(drawer)
-                .build();
+        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_gallery, R.id.nav_timeline)
+                .setDrawerLayout(drawer).build();
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        // getWindowInfo();
-
+        // check permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
         }
         else {
-            imagePaths = queryAllImages();
+            DataManager.getInstance(this);
         }
     }
 
@@ -125,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "存储空间读写权限申请成功", Toast.LENGTH_SHORT).show();
-                imagePaths = queryAllImages();
+                DataManager.getInstance(this);
             } else {
                 Toast.makeText(this, "存储空间读写权限申请失败", Toast.LENGTH_SHORT).show();
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
@@ -136,36 +121,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-                || super.onSupportNavigateUp();
-    }
-
-
-    private List<String> queryAllImages() {
-
-        List<String> imagePaths = new ArrayList<>();
-
-        Cursor cursor = getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                new String[] {MediaStore.Images.Media._ID},
-                null,
-                null,
-                null
-        );
-
-        if (cursor != null) {
-            while(cursor.moveToNext()) {
-                String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
-                String contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                        .buildUpon().appendPath(id).build().toString();
-                imagePaths.add(contentUri);
-            }
-            cursor.close();
-        } else {
-            Log.e(TAG, "queryAllImages: Cursor is null.");
-        }
-
-        return imagePaths;
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
     }
 
 }

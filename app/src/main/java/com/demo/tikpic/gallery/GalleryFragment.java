@@ -28,7 +28,7 @@ public class GalleryFragment extends Fragment {
 
         recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(dataAdapter);
-        recyclerView.setItemViewCacheSize(100);
+        // recyclerView.setItemViewCacheSize(50);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 2);
         recyclerView.setLayoutManager(gridLayoutManager);

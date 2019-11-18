@@ -2,7 +2,6 @@ package com.demo.tikpic;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,12 +28,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DataManager {
-    private static final String DTAG = "DataManager";
+    private static final String TAG = "DataManager";
 
     //stores all show case albums.
     private List<List<MediaAlbum>> GalleryShowCaseList;
     //all media files are stored in this list.
     private List<MediaFile> allItemList;
+    private List<String> imagePaths;
+
     private Context mContext;
     //the current show case
     private List<MediaAlbum> currentShowCase;
@@ -47,38 +48,24 @@ public class DataManager {
         GalleryShowCaseList = new ArrayList<>();
         currentShowCase = new ArrayList<>();
         GalleryShowCaseList.add(currentShowCase);
-        Log.d(DTAG,"START ALLLIST SIZE: " + allItemList.size());
+        Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
 
-        scanMediaFiles();
-        /*
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        // scanMediaFiles();
 
-                scanMediaFiles();
-            }
-        }).start();
-        */
-        Log.d(DTAG,"END OF scanfile :");
+        imagePaths = queryAllImages();
     }
 
     public static DataManager getInstance(Context context) {
-        if(sDataManager == null){
+        if(sDataManager == null) {
             sDataManager = new DataManager(context);
         }
-
         return sDataManager;
-    }
-
-    public List getCurrentShowcase(){
-
-        return null;
     }
 
     public boolean scanMediaFiles() {
         allItemList.clear();
         currentShowCase.clear();
-        Log.d(DTAG,"MAXED POOL SIZE: " + Runtime.getRuntime().availableProcessors()*2);
+        Log.d(TAG,"MAXED POOL SIZE: " + Runtime.getRuntime().availableProcessors()*2);
         int CPU_COUNT = Runtime.getRuntime().availableProcessors();
         int corePoolSize = Math.max(2, Math.min(CPU_COUNT - 1, 4));
         cachedThreadPool = new ThreadPoolExecutor(
@@ -226,7 +213,7 @@ public class DataManager {
         cursor.close();
         createShowcaseList();
 
-        Log.d(DTAG,"END OF FOR CURSOR SIZE: "+ cursorsize);
+        Log.d(TAG,"END OF FOR CURSOR SIZE: "+ cursorsize);
         return true;
     }
 
@@ -273,21 +260,17 @@ public class DataManager {
             }
         }
 
-        Log.d(DTAG,"END3 :");
-    }
-
-    private void broad() {
-        mContext.sendBroadcast(new Intent("com.demo.tikpic.Broadcast.UpdateBroadcast"));
+        Log.d(TAG,"END3 :");
     }
 
     private void createShowcaseList() {
         //showcase index 1: all picture
-        Log.d(DTAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
+        Log.d(TAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
         createAllPicAlbumShowcase();
-        Log.d(DTAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
+        Log.d(TAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
         //showcase index 2: date list
         createDateAlbumShowcase();
-        Log.d(DTAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
+        Log.d(TAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
     }
 
     private void createAllPicAlbumShowcase() {
@@ -302,8 +285,6 @@ public class DataManager {
         for(int i = 0; i < allItemList.size();i++){
             singleAlbum.addIndex(i);
         }
-
-
     }
 
     private void createDateAlbumShowcase() {
@@ -322,11 +303,42 @@ public class DataManager {
                 }
             }
             if(!haveDateAlbum){
-                Log.d(DTAG,"DATE SHOWCASE ALBUM: "+ i.getDate());
+                Log.d(TAG,"DATE SHOWCASE ALBUM: "+ i.getDate());
                 dateList.add(new MediaAlbum(i.getDate(),i.getDate(),1,indexNumber,i.getThumbnailPath()));
             }
             indexNumber++;
         }
+    }
+
+    private List<String> queryAllImages() {
+
+        List<String> imagePaths = new ArrayList<>();
+
+        Cursor cursor = mContext.getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[] {MediaStore.Images.Media._ID},
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null) {
+            while(cursor.moveToNext()) {
+                String id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                String contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        .buildUpon().appendPath(id).build().toString();
+                imagePaths.add(contentUri);
+            }
+            cursor.close();
+        } else {
+            Log.e(TAG, "queryAllImages: Cursor is null.");
+        }
+
+        return imagePaths;
+    }
+
+    public List<String> getImagePaths() {
+        return imagePaths;
     }
 
     public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase) {

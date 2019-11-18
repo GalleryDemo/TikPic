@@ -29,14 +29,13 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     // Decode image in background.
     @Override
     protected Bitmap doInBackground(String... params) {
-        String path = params[0];
-        is = null;
         try {
-            is = hostActivity.getContentResolver().openInputStream(Uri.parse(path));
+            is = hostActivity.getContentResolver().openInputStream(Uri.parse(params[0]));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        return decodeBitmapFromStream(is, 200, 200);
+        Bitmap bitmap = decodeBitmapFromStream(is, 200, 200);
+        return bitmap;
     }
 
     // Once complete, see if ImageView is still around and set bitmap.
@@ -59,11 +58,12 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     }
 
     private Bitmap decodeBitmapFromStream(InputStream is, int reqWidth, int reqHeight) {
-        Log.d(TAG, "decodeBitmapFromStream: start " + is);
+
         Bitmap bitmap = null;
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
+
         BitmapRegionDecoder originalImage = null;
         int height = 0;
         int width = 0;
@@ -71,29 +71,36 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
             originalImage = BitmapRegionDecoder.newInstance(is, false);
             height = originalImage.getHeight();
             width = originalImage.getWidth();
-            options.inSampleSize = getInSampleSize(width, height, reqWidth, reqHeight);
+            options.inSampleSize = calculateInSampleSize(width, height, reqWidth, reqHeight);
+            // Log.d(TAG, "decodeBitmapFromStream: inSampleSize: " + options.inSampleSize);
+
             bitmap = originalImage.decodeRegion(new Rect(0,0, width, height), options);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        if(bitmap == null) {
-            Log.d(TAG, "decodeBitmapFromStream: bitmap is null");
-        }
-        Log.d(TAG, "decodeBitmapFromStream: end" + is);
         return bitmap;
     }
 
-    private int getInSampleSize(int originalWidth, int originalHeight,
+    private int calculateInSampleSize(int originalWidth, int originalHeight,
                                 int reqWidth, int reqHeight) {
+
+        Log.d(TAG, "getInSampleSize: width: " + originalWidth);
+        Log.d(TAG, "getInSampleSize: height: " + originalHeight);
 
         int inSampleSize = 1;
 
-        while( (originalWidth / inSampleSize) >= reqWidth &&
-                (originalHeight / inSampleSize) >= reqHeight ) {
-            inSampleSize *= 2;
+        if (originalHeight > reqHeight || originalWidth > reqWidth) {
+
+            final int halfHeight = originalHeight / 2;
+            final int halfWidth = originalWidth / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
         }
-        Log.d(TAG, "getInSampleSize: inSampleSize: " + inSampleSize);
         return inSampleSize;
     }
 }
