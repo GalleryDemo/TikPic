@@ -17,6 +17,7 @@ import com.demo.tikpic.itemClass.MediaFile;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,7 +43,7 @@ public class DataManager {
     private static DataManager sDataManager;
     private ExecutorService cachedThreadPool;
 
-    private DataManager(Context context){
+    private DataManager(Context context) {
         mContext = context.getApplicationContext();
         allItemList = new ArrayList<>();
         GalleryShowCaseList = new ArrayList<>();
@@ -51,18 +52,19 @@ public class DataManager {
         Log.d(DTAG,"START ALLLIST SIZE: " + allItemList.size());
 
         scanMediaFiles();
+        /*
         new Thread(new Runnable() {
             @Override
             public void run() {
 
-
+                scanMediaFiles();
             }
         }).start();
-
+        */
         Log.d(DTAG,"END OF scanfile :");
     }
 
-    public static DataManager getInstance(Context context){
+    public static DataManager getInstance(Context context) {
         if(sDataManager == null){
             sDataManager = new DataManager(context);
         }
@@ -75,7 +77,7 @@ public class DataManager {
         return null;
     }
 
-    public boolean scanMediaFiles(){
+    public boolean scanMediaFiles() {
         allItemList.clear();
         currentShowCase.clear();
         Log.d(DTAG,"MAXED POOL SIZE: " + Runtime.getRuntime().availableProcessors()*2);
@@ -102,16 +104,20 @@ public class DataManager {
         Calendar calendar = Calendar.getInstance();
 
         int cursorsize = cursor.getCount();
-        if(cursor !=null && cursor.getCount()>0){
+        if(cursor != null && cursor.getCount()>0) {
             //loop the cursor to save media items.
-            int pathCursor = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-            int idCursor = cursor.getColumnIndex(MediaStore.Images.Media._ID);
-            int nameCursor = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME);
-            int fromCursor = cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
-            int timeCursor = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN);
 
             for(cursor.moveToFirst(), indexNumber = 0; !cursor.isAfterLast(); cursor.moveToNext(), indexNumber++){
                 final String path, name, from, id,pathBuild;
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+                id = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon()
+                        .appendPath(String.valueOf(id)).build().toString();
+                name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+                from = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
+
+
+                new Thread(new Runnable() {
                 path = cursor.getString(pathCursor);
                 id = cursor.getString(idCursor);
                 pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
@@ -125,7 +131,7 @@ public class DataManager {
                 });
                 thumbnailPath = externalCacheDir + "/" + id + ".jpg";
                 MediaFile media_file = new MediaFile(pathBuild,name,1,thumbnailPath);
-                long time = cursor.getLong(timeCursor);
+                long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN));
                 //Date date = new Date(time);
 
                 calendar.setTimeInMillis(time);
@@ -133,7 +139,6 @@ public class DataManager {
 
 
                 //Log.d(DTAG,"ALBUM Year: " + calendar.get(Calendar.YEAR) + " Month: "+ calendar.get(Calendar.MONTH)+" Day: " + calendar.get((Calendar.DAY_OF_MONTH)));
-
                 String realDate = calendar.get(Calendar.YEAR) + "年" + calendar.get(Calendar.MONTH)+ "月" + calendar.get(Calendar.DAY_OF_MONTH) + "日";
 
                 media_file.setDate(realDate);
@@ -157,36 +162,30 @@ public class DataManager {
                 //here we are only adding these default sub-albums to the current showcase, which maybe the initial showcase.
                 if(!flag_IsInAlbum){
                     currentShowCase.add(new MediaAlbum(albumPath,from,1, indexNumber, thumbnailPath));
-                    broad();
+                    // broad();
                 }
             }
 
-
-
-        }else{
+        } else {
             Log.e("ScanMediaFiles", "image scan result is null or 0");
             return false;
         }
 
-
+        /*
         //scan videos
         uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         cursor = cr.query(uri, null, null, null, null);
         cursorsize += cursor.getCount();
         if(cursor != null && cursor.getCount() > 0){
-            int pathCursor = cursor.getColumnIndex(MediaStore.Video.Media.DATA);
-            int idCursor = cursor.getColumnIndex(MediaStore.Video.Media._ID);
-            int nameCursor = cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME);
-            int fromCursor = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME);
-            int timeCursor = cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN);
 
             for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext(),indexNumber++){
                 final String path, name, from, id,pathBuild;
-                path = cursor.getString(pathCursor);
-                id = cursor.getString(idCursor);
-                pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build().toString();
-                name = cursor.getString(nameCursor);
-                from = cursor.getString(fromCursor);
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
+                id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
+                pathBuild = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon()
+                        .appendPath(String.valueOf(id)).build().toString();
+                name = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                from = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
 
                 cachedThreadPool.execute(new Runnable() {
                     @Override
@@ -197,7 +196,7 @@ public class DataManager {
                 thumbnailPath = externalCacheDir + "/" + id + ".jpg";
                 MediaFile media_file = new MediaFile(pathBuild,name,2,thumbnailPath);
 
-                long time = cursor.getLong(timeCursor);
+                long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN));
                 //Date date = new Date(time);
 
                 calendar.setTimeInMillis(time);
@@ -205,7 +204,7 @@ public class DataManager {
 
                 String realDate = calendar.get(Calendar.YEAR) + "年" + calendar.get(Calendar.MONTH)+ "月" + calendar.get(Calendar.DAY_OF_MONTH) + "日";
 
-                Log.d(DTAG,realDate);
+                // Log.d(DTAG,realDate);
                 media_file.setDate(realDate);
                 allItemList.add(media_file);
 
@@ -230,11 +229,12 @@ public class DataManager {
                     broad();
                 }
             }
-
-        }else{
+            cursor.close();
+        } else {
             Log.e("ScanMediaFiles", "video scan result is null or 0");
             return false;
         }
+        */
 
         cursor.close();
         createShowcaseList();
@@ -245,28 +245,40 @@ public class DataManager {
 
 
     private void createCache(String path, String id, int type) {
+
         File file = new File(mContext.getExternalCacheDir(), id + ".jpg");
-        if(!file.exists()){
-            InputStream fis = null;
-            try {
-                fis = mContext.getContentResolver().openInputStream(Uri.parse(path));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            Bitmap mBitmap = BitmapFactory.decodeStream(fis, null, null);
+        Bitmap mBitmap;
+
+        if(!file.exists()) {
             if (type == 1) {
+
+                InputStream fis = null;
+                try {
+                    fis = mContext.getContentResolver().openInputStream(Uri.parse(path));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                mBitmap = BitmapFactory.decodeStream(fis, null, null);
+
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 mBitmap = ThumbnailUtils.extractThumbnail(mBitmap, 1080 / 2, 1080 / 2);
             } else {
                 mBitmap = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Video.Thumbnails.MINI_KIND);
             }
             try {
 
-                if(file.createNewFile()){
+                if(file.createNewFile()) {
                     FileOutputStream out = new FileOutputStream(file);
                     mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
                     out.flush();
                     out.close();
-                }else{
+                } else {
                     Log.e("createCache","Cache file creation failed.");
                 }
 

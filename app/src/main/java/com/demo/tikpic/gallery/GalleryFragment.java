@@ -24,10 +24,13 @@ public class GalleryFragment extends Fragment {
         hostActivity = (MainActivity) getActivity();
         View root = inflater.inflate(R.layout.fragment_gallery, container, false);
 
-        recyclerView = root.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(new DataAdapter(hostActivity));
+        DataAdapter dataAdapter = new DataAdapter(hostActivity);
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 4);
+        recyclerView = root.findViewById(R.id.recyclerView);
+        recyclerView.setAdapter(dataAdapter);
+        recyclerView.setItemViewCacheSize(100);
+
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 2);
         recyclerView.setLayoutManager(gridLayoutManager);
 
         return root;

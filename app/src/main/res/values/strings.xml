@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">TikPic</string>
+    <string name="nav_header_desc">Navigation Header</string>
+    <string name="nav_header_title">Gallery Demo</string>
+    <string name="nav_header_subtitle">subtitle</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_timeline">Timeline</string>
 </resources>

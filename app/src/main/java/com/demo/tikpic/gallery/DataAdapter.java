@@ -1,5 +1,6 @@
 package com.demo.tikpic.gallery;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,26 +9,22 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.demo.tikpic.DataManager;
+import com.demo.tikpic.BitmapWorkerTask;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
 import com.demo.tikpic.ViewPager.ViewPagerFragment;
-import com.demo.tikpic.itemClass.MediaFile;
 
 import java.util.List;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
+    private static final String TAG = "myDataAdapter";
     private MainActivity hostActivity;
-    private List<MediaFile> imageUrlList;
-    private DataManager dataManager;
+    private List<String> imageUrlList;
 
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
-        dataManager = DataManager.getInstance(hostActivity);
-        imageUrlList = dataManager.getShowcaseOrAlbumOrIndex(1, 0);
-
+        imageUrlList = hostActivity.getImagePaths();
     }
 
     @NonNull
@@ -35,16 +32,16 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_view, parent, false);
-        return new ViewHolder(view, this);
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-        Glide.with(hostActivity)
-                .asBitmap()
-                .load(imageUrlList.get(position).getThumbnailPath())
-                .into(holder.mImageView);
+        BitmapWorkerTask workerTask = new BitmapWorkerTask(hostActivity, holder.mImageView);
+        workerTask.execute(imageUrlList.get(position));
+        Log.d(TAG, "onBindViewHolder: url: " + imageUrlList.get(position));
+        Log.d(TAG, "onBindViewHolder: position: " + position);
     }
 
     @Override
@@ -53,15 +50,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     }
 
     class ViewHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener {
+                        implements View.OnClickListener {
 
         private ImageView mImageView;
-        final DataAdapter mDataAdapter;
-
-        ViewHolder(@NonNull View itemView, DataAdapter adapter) {
+        ViewHolder(@NonNull View itemView) {
             super(itemView);
             mImageView = itemView.findViewById(R.id.itemImageView);
-            mDataAdapter = adapter;
             itemView.setOnClickListener(this);
         }
 
@@ -72,3 +66,5 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     }
 
 }
+
+
