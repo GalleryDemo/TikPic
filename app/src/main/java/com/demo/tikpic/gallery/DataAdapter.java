@@ -90,8 +90,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         // load placeholder
-        holder.mImageView.setImageDrawable(
-                hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
+        holder.mImageView.setImageDrawable(hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
 
         // load real photo
         loadBitmap(position, holder);
@@ -163,9 +162,6 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                     imageView.setTag(workerTask);
                     workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, String.valueOf(position));
                     Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
-                }
-                else {
-                    Log.d(TAG, "loadBitmap: asynctask for position " + position + " already in progress");
                 }
             }
         }
