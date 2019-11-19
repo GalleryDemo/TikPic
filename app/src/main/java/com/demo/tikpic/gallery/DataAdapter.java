@@ -41,15 +41,16 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     private static final String TAG = "MYSYNC";
     private MainActivity hostActivity;
-    private DataManager dataManager;
     private List<String> imageUrlList;
 
+    // Memory Cache
     private LruCache<String, Bitmap> memoryCache;
 
+    // Disk Cache
     private DiskLruCache diskLruCache;
     private final Object diskCacheLock = new Object();
     private boolean diskCacheStarting = true;
-    private static final int DISK_CACHE_SIZE = 1024 * 1024 * 50; // 50MB
+    private static final int DISK_CACHE_SIZE = 1024 * 1024 * 100; // 100MB
     private static final String DISK_CACHE_SUBDIR = "thumbnails";
 
     private ExecutorService cachedThreadPool;
@@ -57,9 +58,6 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
         imageUrlList = DataManager.getInstance(hostActivity).getImagePaths();
-
-        Log.d(TAG, "DataAdapter: size of imageurllist " + imageUrlList.size());
-
 
         // initialize memory cache
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024); // in KiloBytes
@@ -75,13 +73,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         File cacheDir = getDiskCacheDir(hostActivity, DISK_CACHE_SUBDIR);
         new InitDiskCacheTask().execute(cacheDir);
 
+        // cached thread pool for BitmapWorkerTask
         cachedThreadPool = Executors.newCachedThreadPool();
-    }
-
-    @Override
-    public void onViewRecycled(@NonNull ViewHolder holder) {
-        super.onViewRecycled(holder);
-        ((AsyncTask) holder.mImageView.getTag()).cancel(true);
     }
 
     @NonNull
@@ -94,19 +87,58 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Log.d(TAG, "onBindViewHolder: position " + position);
 
-        holder.mImageView.setImageDrawable(hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
-        /*
+        // load placeholder
+        holder.mImageView.setImageDrawable(
+                hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
+
+        // load real photo
         if(!holder.isLoading()) {
-            holder.switchLoadState();
             loadBitmap(position, holder);
         }
         else {
-            Log.d(TAG, "onBindViewHolder: loading task already in queue #" + position);
+            Log.d(TAG, "onBindViewHolder: loading asynctask already in progress " + position);
         }
-         */
-        loadBitmap(position, holder);
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+
+        if(holder.isLoading()) {
+            holder.switchLoadState();
+            Log.d(TAG, "onViewRecycled: loading state switched");
+            ((AsyncTask) holder.mImageView.getTag()).cancel(true);
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return imageUrlList.size();
+    }
+
+    class ViewHolder extends RecyclerView.ViewHolder
+                        implements View.OnClickListener {
+
+        private ImageView mImageView;
+        private boolean loading = false;
+        public boolean isLoading() {
+            return loading;
+        }
+        public void switchLoadState() {
+            loading = !loading;
+        }
+
+        ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            mImageView = itemView.findViewById(R.id.itemImageView);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            hostActivity.replaceFragment(new ViewPagerFragment());
+        }
     }
 
     private void loadBitmap(int position, ViewHolder viewHolder) {
@@ -126,7 +158,9 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 Log.d(TAG, "loadBitmap: position " + position + " disk hit");
             }
             else {
-                // imageView.setImageResource(R.drawable.image_placeholder);
+                // change viewholder's loading state from false to true
+                viewHolder.switchLoadState();
+
                 BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
                 imageView.setTag(workerTask);
                 workerTask.execute(String.valueOf(position));
@@ -135,34 +169,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         }
     }
 
-    @Override
-    public int getItemCount() {
-        return imageUrlList.size();
-    }
-
-    class ViewHolder extends RecyclerView.ViewHolder
-                        implements View.OnClickListener {
-
-        private ImageView mImageView;
-        // private boolean loading = false;
-
-        // public boolean isLoading() { return loading; }
-        // public void switchLoadState() { loading = !loading; }
-
-        ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            mImageView = itemView.findViewById(R.id.itemImageView);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            hostActivity.replaceFragment(new ViewPagerFragment());
-        }
-    }
-
     private void addBitmapToCache(String key, Bitmap bitmap) {
-        Log.d(TAG, "addBitmapToCache: entered");
         // Add to memory cache
         if (getBitmapFromMemCache(key) == null) {
             memoryCache.put(key, bitmap);
@@ -188,7 +195,6 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 e.printStackTrace();
             }
         }
-        Log.d(TAG, "addBitmapToCache: ended");
     }
 
     private Bitmap getBitmapFromMemCache(String key) {
@@ -222,11 +228,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         return null;
     }
 
-    // Creates a unique subdirectory of the designated app cache directory. Tries to use external
-    // but if not mounted, falls back on internal storage.
+    // Creates a unique subdirectory of the designated app cache directory.
+    // Tries to use external but if not mounted, falls back on internal storage.
     private static File getDiskCacheDir(Context context, String uniqueName) {
-        // Check if media is mounted or storage is built-in, if so, try and use external cache dir
-        // otherwise use internal cache dir
+        // Check if media is mounted or storage is built-in, if so,
+        // try and use external cache dir otherwise use internal cache dir
+
         final String cachePath =
                 Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
                         !isExternalStorageRemovable() ?
@@ -242,21 +249,20 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             synchronized (diskCacheLock) {
                 File cacheDir = params[0];
                 try {
-                    diskLruCache = DiskLruCache.open(cacheDir, 1, 1, DISK_CACHE_SIZE);
+                    diskLruCache = DiskLruCache.open(
+                            cacheDir, 1, 1, DISK_CACHE_SIZE);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 diskCacheStarting = false; // Finished initialization
                 diskCacheLock.notifyAll(); // Wake any waiting threads
             }
-
             return null;
         }
     }
 
     class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
 
-        // private static final String TAG = "myAsyncTask";
         private WeakReference<ViewHolder> viewHolderWeakRef;
         private WeakReference<ImageView> imageViewWeakRef;
         private InputStream is = null;
@@ -266,29 +272,19 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             imageViewWeakRef = new WeakReference<>(viewHolder.mImageView);
         }
 
-        // Decode image in background.
         @Override
         protected Bitmap doInBackground(String... params) {
-
-            Log.d(TAG, "loadBitmap: START***" + params[0]);
+            int position = Integer.valueOf(params[0]);
+            String path = imageUrlList.get(position);
 
             try {
-                int position = Integer.valueOf(params[0]);
-                String path = imageUrlList.get(position);
                 is = hostActivity.getContentResolver().openInputStream(Uri.parse(path));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
 
             final Bitmap bitmap = decodeBitmapFromStream(is, 200, 200);
-
-            Log.d(TAG, "doInBackground: start adding bitmap to cache... " + params[0]);
-            cachedThreadPool.submit(() -> {
-                addBitmapToCache(params[0], bitmap); // params[1]: String.valueOf(position)
-            });
-            Log.d(TAG, "doInBackground: adding bitmap to cache ended. " + params[0]);
-
-            Log.d(TAG, "loadBitmap: END***" + params[0]);
+            cachedThreadPool.submit(() -> addBitmapToCache(params[0], bitmap));
 
             return bitmap;
         }
@@ -296,7 +292,6 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         // Once complete, see if ImageView is still around and set bitmap.
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            // viewHolderWeakRef.get().switchLoadState();
 
             if(is != null) {
                 try {
@@ -310,9 +305,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 final ImageView imageView = imageViewWeakRef.get();
                 if(imageView != null) {
                     imageView.setImageBitmap(bitmap);
-                }
-                else {
-                    Log.d(TAG, "onPostExecute: imageView already gone");
+                    viewHolderWeakRef.get().switchLoadState();
                 }
             }
         }

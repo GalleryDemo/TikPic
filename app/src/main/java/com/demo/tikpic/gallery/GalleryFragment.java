@@ -16,19 +16,18 @@ import com.demo.tikpic.R;
 
 public class GalleryFragment extends Fragment {
 
-    private MainActivity hostActivity;
-    private RecyclerView recyclerView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        hostActivity = (MainActivity) getActivity();
+
+        MainActivity hostActivity = (MainActivity) getActivity();
+
         View root = inflater.inflate(R.layout.fragment_gallery, container, false);
 
         DataAdapter dataAdapter = new DataAdapter(hostActivity);
 
-        recyclerView = root.findViewById(R.id.recyclerView);
+        RecyclerView recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(dataAdapter);
-        // recyclerView.setItemViewCacheSize(50);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 2);
         recyclerView.setLayoutManager(gridLayoutManager);
