@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DataManager {
-    private static final String TAG = "DataManager";
+    private static final String TAG = "MYSYNC";
 
     //stores all show case albums.
     private List<List<MediaAlbum>> GalleryShowCaseList;
@@ -42,7 +42,10 @@ public class DataManager {
     private static DataManager sDataManager;
     private ExecutorService cachedThreadPool;
 
+    private static final Object lock = new Object();
+
     private DataManager(Context context) {
+        Log.d(TAG, "DataManager: entered datamanager constructor");
         mContext = context.getApplicationContext();
         allItemList = new ArrayList<>();
         GalleryShowCaseList = new ArrayList<>();
@@ -51,7 +54,6 @@ public class DataManager {
         Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
 
         // scanMediaFiles();
-
         imagePaths = queryAllImages();
     }
 

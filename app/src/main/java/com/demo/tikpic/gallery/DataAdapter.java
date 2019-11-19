@@ -35,12 +35,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 import static android.os.Environment.isExternalStorageRemovable;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "MYSYNC";
     private MainActivity hostActivity;
     private DataManager dataManager;
     private List<String> imageUrlList;
@@ -53,13 +52,11 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 50; // 50MB
     private static final String DISK_CACHE_SUBDIR = "thumbnails";
 
-    private ExecutorService fixedThreadPool;
+    private ExecutorService cachedThreadPool;
 
     DataAdapter(MainActivity activity) {
         hostActivity = activity;
-
-        dataManager = DataManager.getInstance(hostActivity);
-        imageUrlList = dataManager.getImagePaths();
+        imageUrlList = DataManager.getInstance(hostActivity).getImagePaths();
 
         Log.d(TAG, "DataAdapter: size of imageurllist " + imageUrlList.size());
 
@@ -78,7 +75,13 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         File cacheDir = getDiskCacheDir(hostActivity, DISK_CACHE_SUBDIR);
         new InitDiskCacheTask().execute(cacheDir);
 
-        fixedThreadPool = Executors.newFixedThreadPool(8);
+        cachedThreadPool = Executors.newCachedThreadPool();
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        ((AsyncTask) holder.mImageView.getTag()).cancel(true);
     }
 
     @NonNull
@@ -92,10 +95,22 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Log.d(TAG, "onBindViewHolder: position " + position);
-        loadBitmap(position, holder.mImageView);
+
+        holder.mImageView.setImageDrawable(hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
+        /*
+        if(!holder.isLoading()) {
+            holder.switchLoadState();
+            loadBitmap(position, holder);
+        }
+        else {
+            Log.d(TAG, "onBindViewHolder: loading task already in queue #" + position);
+        }
+         */
+        loadBitmap(position, holder);
     }
 
-    private void loadBitmap(int position, ImageView imageView) {
+    private void loadBitmap(int position, ViewHolder viewHolder) {
+        ImageView imageView = viewHolder.mImageView;
 
         // check if bitmap is cached in memory
         Bitmap bitmap = getBitmapFromMemCache(String.valueOf(position));
@@ -112,8 +127,9 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             }
             else {
                 // imageView.setImageResource(R.drawable.image_placeholder);
-                BitmapWorkerTask workerTask = new BitmapWorkerTask(imageView);
-                workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, String.valueOf(position));
+                BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
+                imageView.setTag(workerTask);
+                workerTask.execute(String.valueOf(position));
                 Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
             }
         }
@@ -128,6 +144,11 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                         implements View.OnClickListener {
 
         private ImageView mImageView;
+        // private boolean loading = false;
+
+        // public boolean isLoading() { return loading; }
+        // public void switchLoadState() { loading = !loading; }
+
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             mImageView = itemView.findViewById(R.id.itemImageView);
@@ -141,6 +162,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     }
 
     private void addBitmapToCache(String key, Bitmap bitmap) {
+        Log.d(TAG, "addBitmapToCache: entered");
         // Add to memory cache
         if (getBitmapFromMemCache(key) == null) {
             memoryCache.put(key, bitmap);
@@ -166,6 +188,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 e.printStackTrace();
             }
         }
+        Log.d(TAG, "addBitmapToCache: ended");
     }
 
     private Bitmap getBitmapFromMemCache(String key) {
@@ -234,11 +257,13 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
 
         // private static final String TAG = "myAsyncTask";
+        private WeakReference<ViewHolder> viewHolderWeakRef;
         private WeakReference<ImageView> imageViewWeakRef;
         private InputStream is = null;
 
-        BitmapWorkerTask(ImageView iv) {
-            imageViewWeakRef = new WeakReference<>(iv);
+        BitmapWorkerTask(ViewHolder viewHolder) {
+            viewHolderWeakRef = new WeakReference<>(viewHolder);
+            imageViewWeakRef = new WeakReference<>(viewHolder.mImageView);
         }
 
         // Decode image in background.
@@ -254,11 +279,14 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+
             final Bitmap bitmap = decodeBitmapFromStream(is, 200, 200);
 
-            fixedThreadPool.submit(() -> {
+            Log.d(TAG, "doInBackground: start adding bitmap to cache... " + params[0]);
+            cachedThreadPool.submit(() -> {
                 addBitmapToCache(params[0], bitmap); // params[1]: String.valueOf(position)
             });
+            Log.d(TAG, "doInBackground: adding bitmap to cache ended. " + params[0]);
 
             Log.d(TAG, "loadBitmap: END***" + params[0]);
 
@@ -268,6 +296,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         // Once complete, see if ImageView is still around and set bitmap.
         @Override
         protected void onPostExecute(Bitmap bitmap) {
+            // viewHolderWeakRef.get().switchLoadState();
+
             if(is != null) {
                 try {
                     is.close();
@@ -275,6 +305,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                     e.printStackTrace();
                 }
             }
+
             if (bitmap != null && imageViewWeakRef != null) {
                 final ImageView imageView = imageViewWeakRef.get();
                 if(imageView != null) {
