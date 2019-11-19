@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 import static android.os.Environment.isExternalStorageRemovable;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
@@ -93,12 +94,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
 
         // load real photo
-        if(!holder.isLoading()) {
-            loadBitmap(position, holder);
-        }
-        else {
-            Log.d(TAG, "onBindViewHolder: loading asynctask already in progress " + position);
-        }
+        loadBitmap(position, holder);
     }
 
     @Override
@@ -158,13 +154,19 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 Log.d(TAG, "loadBitmap: position " + position + " disk hit");
             }
             else {
-                // change viewholder's loading state from false to true
-                viewHolder.switchLoadState();
+                if(!viewHolder.isLoading()) {
+                    // change viewholder's loading state from false to true
+                    viewHolder.switchLoadState();
+                    Log.d(TAG, "loadBitmap: isloading: " + viewHolder.isLoading());
 
-                BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
-                imageView.setTag(workerTask);
-                workerTask.execute(String.valueOf(position));
-                Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
+                    BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
+                    imageView.setTag(workerTask);
+                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, String.valueOf(position));
+                    Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
+                }
+                else {
+                    Log.d(TAG, "loadBitmap: asynctask for position " + position + " already in progress");
+                }
             }
         }
     }
@@ -283,7 +285,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 e.printStackTrace();
             }
 
-            final Bitmap bitmap = decodeBitmapFromStream(is, 200, 200);
+            final Bitmap bitmap = decodeBitmapFromStream(is, 150, 150);
             cachedThreadPool.submit(() -> addBitmapToCache(params[0], bitmap));
 
             return bitmap;

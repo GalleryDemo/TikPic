@@ -29,7 +29,7 @@ public class GalleryFragment extends Fragment {
         RecyclerView recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(dataAdapter);
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 2);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 3);
         recyclerView.setLayoutManager(gridLayoutManager);
 
         return root;
