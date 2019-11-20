@@ -79,6 +79,8 @@ public class VideoFragment extends Fragment {
                 new MediaPlayer.OnPreparedListener() {
                     @Override
                     public void onPrepared(MediaPlayer mediaPlayer) {
+                        // mediaPlayer.setScreenOnWhilePlaying();
+                        // mediaPlayer.setWakeMode();
                         mVideoView.seekTo(1);
                         // mVideoView.start();
                     }
