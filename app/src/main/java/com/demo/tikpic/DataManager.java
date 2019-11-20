@@ -51,11 +51,15 @@ public class DataManager {
         GalleryShowCaseList = new ArrayList<>();
         currentShowCase = new ArrayList<>();
         GalleryShowCaseList.add(currentShowCase);
-        Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
+        // Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
 
         // scanMediaFiles();
+
         imagePaths = queryAllImages();
         imagePaths.addAll(queryAllVideos());
+        // imagePaths = queryAllVideos();
+
+        // content://media/external/video/media/3009
     }
 
     public static DataManager getInstance(Context context) {

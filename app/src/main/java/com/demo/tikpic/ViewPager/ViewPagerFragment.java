@@ -43,7 +43,9 @@ public class ViewPagerFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
 
         if (mActivity.getSupportActionBar() != null) {
             mActivity.getSupportActionBar().hide();

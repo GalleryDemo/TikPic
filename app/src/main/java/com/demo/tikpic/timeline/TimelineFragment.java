@@ -22,6 +22,12 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
     private MainActivity hostActivity;
     private SectionedRecyclerViewAdapter sectionedAdapter;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
