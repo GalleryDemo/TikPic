@@ -1,5 +1,6 @@
 package com.demo.tikpic.timeline;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
+import com.demo.tikpic.ViewPagerActivity;
 
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
 
@@ -79,12 +81,16 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
     @Override
     public void onItemRootViewClicked(@NonNull final String sectionTitle,
                                       final int itemAdapterPosition) {
-        Toast.makeText(
+        /*Toast.makeText(
                 getContext(),
                 String.format(
                         "Clicked on position #%s of Section %s",
                         sectionedAdapter.getPositionInSection(itemAdapterPosition),
-                        sectionTitle), Toast.LENGTH_SHORT).show();
+                        sectionTitle), Toast.LENGTH_SHORT).show();*/
+
+        Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
+        intent.putExtra("position", itemAdapterPosition);
+        hostActivity.startActivity(intent);
     }
 
 }

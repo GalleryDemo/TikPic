@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
@@ -27,7 +26,7 @@ public class ViewPagerAdapter extends PagerAdapter {
     private Context mContext;
     private Map<Integer, View> mViewMap;
 
-    public ViewPagerAdapter(Context context, MainActivity activity_main, int listIndex, int imgIndex) {
+    ViewPagerAdapter(Context context, MainActivity activity_main, int listIndex, int imgIndex) {
         mContext = context;
         mActivity = activity_main;
         this.listIndex = listIndex;
@@ -47,13 +46,15 @@ public class ViewPagerAdapter extends PagerAdapter {
         return view == object;
     }
 
+
+
     @NonNull
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
 
         MediaFile item = DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,0,0);
-        if(item.getType()==1){
-            Log.d(TAG, "instantiateItem: "+position);
+        if(item.getType() == 1) {
+            Log.d(TAG, "instantiateItem: " + position);
 
             ImageDisplayView view = new ImageDisplayView(mContext, mActivity);
             view.setAlbumImage(position, listIndex);
@@ -62,14 +63,12 @@ public class ViewPagerAdapter extends PagerAdapter {
             mViewMap.put(position,view);
             return view;
 
-        }else{
-            VideoView view = new VideoView(mContext,  DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,listIndex, position).getPath());
+        } else {
+            VideoView view = new VideoView(mContext, DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,listIndex, position).getPath());
             container.addView(view);
             mViewMap.put(position,view);
             return view;
-
         }
-
     }
 
     @Override

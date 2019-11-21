@@ -2,7 +2,6 @@ package com.demo.tikpic.ViewPager;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,16 +10,15 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.viewpager.widget.ViewPager;
 
-import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 
 public class ViewPagerFragment extends Fragment {
 
-    private static String TAG = "Fragment_Albums";
+    private static String TAG = "ViewPagerFragment";
     private Context mContext;
     private MainActivity mActivity;
+
     private NewViewPager view;
 
     private int mListIndex, mPicIndex;
@@ -52,7 +50,7 @@ public class ViewPagerFragment extends Fragment {
         }
         mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //隐藏状态栏
 
-        Log.d(TAG, "onCreateView: " + DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0).size());
+        // Log.d(TAG, "onCreateView: " + DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0).size());
 
         view = new NewViewPager(mContext,mActivity);
         ViewPagerAdapter mAdapter = new ViewPagerAdapter(mContext,mActivity,0,0);

@@ -2,7 +2,6 @@ package com.demo.tikpic.ViewPager;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
@@ -12,8 +11,9 @@ import androidx.viewpager.widget.ViewPager;
 import com.demo.tikpic.MainActivity;
 
 public class NewViewPager extends ViewPager {
+    private static final String TAG = "NewViewPager";
+
     private MainActivity mActivity;
-    String TAG = "NewViewPager";
     int flag = 0;
 
     public NewViewPager(@NonNull Context context) {
@@ -43,7 +43,7 @@ public class NewViewPager extends ViewPager {
         }*/
 
        // Log.d(TAG, "onInterceptTouchEvent: mo"+mActivity.mo +" flag :"+flag);
-        if(action == MotionEvent.ACTION_DOWN){
+        if(action == MotionEvent.ACTION_DOWN) {
             super.onTouchEvent(ev);
             super.onInterceptTouchEvent(ev);
         }

@@ -127,6 +127,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         return imageUrlList.size();
     }
 
+    // ==================== ViewHolder ==================== //
+
     class ViewHolder extends RecyclerView.ViewHolder
                         implements View.OnClickListener {
 
@@ -153,8 +155,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
             intent.putExtra("position", getAdapterPosition());
             hostActivity.startActivity(intent);
+
+            // hostActivity.replaceFragment(new ViewPagerFragment());
         }
     }
+
+    // ==================== ViewHolder ==================== //
 
     private void loadBitmap(int position, ViewHolder viewHolder, int mediaType) {
         ImageView imageView = viewHolder.mImageView;

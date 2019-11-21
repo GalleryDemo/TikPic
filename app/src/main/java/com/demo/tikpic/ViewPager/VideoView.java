@@ -14,6 +14,7 @@ import android.widget.RelativeLayout;
 import java.io.IOException;
 
 public class VideoView extends RelativeLayout implements TextureView.SurfaceTextureListener {
+
     //	private TextureView textureView;
     private MediaPlayer mMediaPlayer;
     private Surface surface;
@@ -41,11 +42,10 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         super(context, attrs, defStyleAttr);
     }
 
-
     private void init() throws IOException {
         TextureView textureView = new TextureView(getContext());
         textureView.setSurfaceTextureListener(this);
-        textureView.setOnClickListener(new OnClickListener(){
+        textureView.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -60,7 +60,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
-            public void onPrepared(MediaPlayer mp){
+            public void onPrepared(MediaPlayer mp) {
                 //mMediaPlayer.start();
             }
         });
@@ -68,7 +68,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
     }
 
-    private void play(){
+    private void play() {
 
         mMediaPlayer.setSurface(surface);
 

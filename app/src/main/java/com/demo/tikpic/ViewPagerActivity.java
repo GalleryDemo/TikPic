@@ -22,7 +22,6 @@ public class ViewPagerActivity extends FragmentActivity {
     private ViewPager mPager;
     private PagerAdapter pagerAdapter;
     private List<String> mediaPaths;
-    private Fragment currentFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,13 +55,12 @@ public class ViewPagerActivity extends FragmentActivity {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                if(state == ViewPager.SCROLL_STATE_IDLE) {
-
+                /*if(state == ViewPager.SCROLL_STATE_IDLE) {
                 }
                 else if(state == ViewPager.SCROLL_STATE_DRAGGING) {
                 }
                 else if(state == ViewPager.SCROLL_STATE_SETTLING) {
-                }
+                }*/
             }
         });
     }
@@ -87,7 +85,6 @@ public class ViewPagerActivity extends FragmentActivity {
             else {
                 return ImageFragment.newInstance(uri);
             }
-
         }
 
         @Override

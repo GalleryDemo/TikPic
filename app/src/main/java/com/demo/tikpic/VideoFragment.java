@@ -61,7 +61,6 @@ public class VideoFragment extends Fragment {
         mVideoView = view.findViewById(R.id.videoView);
         MediaController controller = new MediaController(context);
         controller.setMediaPlayer(mVideoView);
-        controller.isShowing();
         mVideoView.setMediaController(controller);
         /*
         mVideoView.setOnClickListener(new View.OnClickListener() {
@@ -133,6 +132,7 @@ public class VideoFragment extends Fragment {
                         // mVideoView.start();
                     }
                 });
+
     }
 
     private void releasePlayer() {
@@ -147,10 +147,6 @@ public class VideoFragment extends Fragment {
             return Uri.parse("android.resource://" + context.getPackageName() +
                     "/raw/" + mediaName);
         }
-    }
-
-    public void pause() {
-        mVideoView.pause();
     }
 
 }
