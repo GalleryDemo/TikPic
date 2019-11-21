@@ -315,6 +315,13 @@ public class ImageDisplayView extends View {
         if (Math.abs(dxy[1]) > 0) {
             inputDetector.in67 = false;
         }
+
+        if(Math.abs(dxy[0])==0&&Math.abs(dx)>0.01f){
+          //  mActivity.mo=0;
+        }else{
+         //   mActivity.mo=1;
+        }
+
         invalidate();
     }
 

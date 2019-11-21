@@ -21,7 +21,7 @@ public class ViewPagerFragment extends Fragment {
     private static String TAG = "Fragment_Albums";
     private Context mContext;
     private MainActivity mActivity;
-    private ViewPager view;
+    private NewViewPager view;
 
     private int mListIndex, mPicIndex;
 
@@ -52,7 +52,7 @@ public class ViewPagerFragment extends Fragment {
 
         Log.d(TAG, "onCreateView: " + DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0).size());
 
-        view = new ViewPager(mContext);
+        view = new NewViewPager(mContext,mActivity);
         ViewPagerAdapter mAdapter = new ViewPagerAdapter(mContext,mActivity,0,0);
         view.setAdapter(mAdapter);
         view.setCurrentItem(mPicIndex);

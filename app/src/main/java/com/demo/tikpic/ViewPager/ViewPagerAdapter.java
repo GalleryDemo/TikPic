@@ -63,12 +63,10 @@ public class ViewPagerAdapter extends PagerAdapter {
             return view;
 
         }else{
-            /*VideoDisplayView view = new VideoDisplayView(mContext);
-            view.setResourse(item.getPath());
+            VideoView view = new VideoView(mContext,  DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,listIndex, position).getPath());
             container.addView(view);
             mViewMap.put(position,view);
-            return view;*/
-            return new ImageView(mContext);
+            return view;
 
         }
 
