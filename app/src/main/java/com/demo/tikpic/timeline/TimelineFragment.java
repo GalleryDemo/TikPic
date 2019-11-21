@@ -22,6 +22,12 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
     private MainActivity hostActivity;
     private SectionedRecyclerViewAdapter sectionedAdapter;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -43,13 +49,13 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
 
         final RecyclerView recyclerView = view.findViewById(R.id.recyclerview);
 
-        final GridLayoutManager glm = new GridLayoutManager(hostActivity, 2);
+        final GridLayoutManager glm = new GridLayoutManager(hostActivity, 3);
         glm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(final int position) {
                 if (sectionedAdapter.getSectionItemViewType(position)
                         == SectionedRecyclerViewAdapter.VIEW_TYPE_HEADER) {
-                    return 2;
+                    return 3;
                 }
                 return 1;
             }

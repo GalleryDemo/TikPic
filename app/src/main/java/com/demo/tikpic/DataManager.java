@@ -51,10 +51,15 @@ public class DataManager {
         GalleryShowCaseList = new ArrayList<>();
         currentShowCase = new ArrayList<>();
         GalleryShowCaseList.add(currentShowCase);
-        Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
+        // Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
 
         // scanMediaFiles();
+
         imagePaths = queryAllImages();
+        imagePaths.addAll(queryAllVideos());
+        // imagePaths = queryAllVideos();
+
+        // content://media/external/video/media/3009
     }
 
     public static DataManager getInstance(Context context) {
@@ -337,6 +342,33 @@ public class DataManager {
         }
 
         return imagePaths;
+    }
+
+    private List<String> queryAllVideos() {
+
+        List<String> VideoPaths = new ArrayList<>();
+
+        Cursor cursor = mContext.getContentResolver().query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                new String[] {MediaStore.Video.Media._ID},
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null) {
+            while(cursor.moveToNext()) {
+                String id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
+                String contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                                        .buildUpon().appendPath(id).build().toString();
+                VideoPaths.add(contentUri);
+            }
+            cursor.close();
+        } else {
+            Log.e(TAG, "queryAllImages: Cursor is null.");
+        }
+
+        return VideoPaths;
     }
 
     public List<String> getImagePaths() {

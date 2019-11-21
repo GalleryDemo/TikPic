@@ -1,10 +1,12 @@
 package com.demo.tikpic.gallery;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -23,7 +25,7 @@ import com.bumptech.glide.disklrucache.DiskLruCache;
 import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
-import com.demo.tikpic.ViewPager.ViewPagerFragment;
+import com.demo.tikpic.ViewPagerActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,6 +43,10 @@ import static android.os.Environment.isExternalStorageRemovable;
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     private static final String TAG = "MYSYNC";
+
+    private static final int TYPE_IMAGE = 0;
+    private static final int TYPE_VIDEO = 1;
+
     private MainActivity hostActivity;
     private List<String> imageUrlList;
 
@@ -93,8 +99,16 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         holder.mImageView.setImageDrawable(
                 hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
 
-        // load real photo
-        loadBitmap(position, holder);
+        // load media thumbnail
+        if(imageUrlList.get(position).contains("content://media/external/video")) {
+            holder.mVideoIconImageView.setVisibility(View.VISIBLE);
+            loadBitmap(position, holder, TYPE_VIDEO);
+        }
+        else {
+            holder.mVideoIconImageView.setVisibility(View.GONE);
+            loadBitmap(position, holder, TYPE_IMAGE);
+        }
+
     }
 
     @Override
@@ -117,6 +131,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                         implements View.OnClickListener {
 
         private ImageView mImageView;
+        private ImageView mVideoIconImageView;
+
         private boolean loading = false;
         public boolean isLoading() {
             return loading;
@@ -128,16 +144,19 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             mImageView = itemView.findViewById(R.id.itemImageView);
+            mVideoIconImageView = itemView.findViewById(R.id.videoPlaybackIcon);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            hostActivity.replaceFragment(new ViewPagerFragment());
+            Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
+            intent.putExtra("position", getAdapterPosition());
+            hostActivity.startActivity(intent);
         }
     }
 
-    private void loadBitmap(int position, ViewHolder viewHolder) {
+    private void loadBitmap(int position, ViewHolder viewHolder, int mediaType) {
         ImageView imageView = viewHolder.mImageView;
 
         // check if bitmap is cached in memory
@@ -157,18 +176,29 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 if(!viewHolder.isLoading()) {
                     // change viewholder's loading state from false to true
                     viewHolder.switchLoadState();
-                    Log.d(TAG, "loadBitmap: isloading: " + viewHolder.isLoading());
 
                     BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
                     imageView.setTag(workerTask);
-                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, String.valueOf(position));
+                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, mediaType);
+                    // workerTask.execute(position, mediaType);
                     Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
-                }
-                else {
-                    Log.d(TAG, "loadBitmap: asynctask for position " + position + " already in progress");
                 }
             }
         }
+    }
+
+    // Creates a unique subdirectory of the designated app cache directory.
+    // Tries to use external but if not mounted, falls back on internal storage.
+    private static File getDiskCacheDir(Context context, String uniqueName) {
+        // Check if media is mounted or storage is built-in, if so,
+        // try and use external cache dir otherwise use internal cache dir
+
+        final String cachePath =
+                Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
+                        !isExternalStorageRemovable() ?
+                        context.getExternalCacheDir().getPath() : context.getCacheDir().getPath();
+
+        return new File(cachePath + File.separator + uniqueName);
     }
 
     private void addBitmapToCache(String key, Bitmap bitmap) {
@@ -184,7 +214,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                     DiskLruCache.Editor editor = diskLruCache.edit(key);
 
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 30, byteArrayOutputStream);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
                     byte[]bytes = byteArrayOutputStream.toByteArray();
                     String encodedBitmap = Base64.encodeToString(bytes,Base64.DEFAULT);
 
@@ -230,20 +260,6 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         return null;
     }
 
-    // Creates a unique subdirectory of the designated app cache directory.
-    // Tries to use external but if not mounted, falls back on internal storage.
-    private static File getDiskCacheDir(Context context, String uniqueName) {
-        // Check if media is mounted or storage is built-in, if so,
-        // try and use external cache dir otherwise use internal cache dir
-
-        final String cachePath =
-                Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
-                        !isExternalStorageRemovable() ?
-                        context.getExternalCacheDir().getPath() : context.getCacheDir().getPath();
-
-        return new File(cachePath + File.separator + uniqueName);
-    }
-
     class InitDiskCacheTask extends AsyncTask<File, Void, Void> {
         @Override
         protected Void doInBackground(File... params) {
@@ -263,7 +279,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         }
     }
 
-    class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
+    class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
 
         private WeakReference<ViewHolder> viewHolderWeakRef;
         private WeakReference<ImageView> imageViewWeakRef;
@@ -275,18 +291,31 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         }
 
         @Override
-        protected Bitmap doInBackground(String... params) {
-            int position = Integer.valueOf(params[0]);
-            String path = imageUrlList.get(position);
+        protected Bitmap doInBackground(Integer... params) {
+            Log.d(TAG, "doInBackground: entered");
 
-            try {
-                is = hostActivity.getContentResolver().openInputStream(Uri.parse(path));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+            int position = params[0];
+            String path = imageUrlList.get(position);
+            final Bitmap bitmap;
+
+            // Video
+            if(path.contains("content://media/external/video")) {
+                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                retriever.setDataSource(hostActivity, Uri.parse(path));
+                // bitmap = retriever.getScaledFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 150, 150);
+                bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+            }
+            // Image
+            else {
+                try {
+                    is = hostActivity.getContentResolver().openInputStream(Uri.parse(path));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                bitmap = decodeBitmapFromStream(is, 150, 150);
             }
 
-            final Bitmap bitmap = decodeBitmapFromStream(is, 150, 150);
-            cachedThreadPool.submit(() -> addBitmapToCache(params[0], bitmap));
+            cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(params[0]), bitmap));
 
             return bitmap;
         }
