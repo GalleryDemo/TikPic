@@ -55,9 +55,10 @@ public class DataManager {
 
         // scanMediaFiles();
 
-        imagePaths = queryAllImages();
-        imagePaths.addAll(queryAllVideos());
-        // imagePaths = queryAllVideos();
+        // imagePaths = queryAllImages();
+        // imagePaths.addAll(queryAllVideos());
+        imagePaths = queryAllVideos();
+        imagePaths.addAll(queryAllImages());
 
         // content://media/external/video/media/3009
     }

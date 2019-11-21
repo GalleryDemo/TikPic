@@ -17,10 +17,12 @@ import java.util.List;
 public class ViewPagerActivity extends FragmentActivity {
 
     private static final String TAG = "ViewPagerActivity";
+    // private static final String TAG = "VideoFragment";
 
     private ViewPager mPager;
     private PagerAdapter pagerAdapter;
     private List<String> mediaPaths;
+    private Fragment currentFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,6 +36,35 @@ public class ViewPagerActivity extends FragmentActivity {
         pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         mPager.setAdapter(pagerAdapter);
         mPager.setCurrentItem(getIntent().getIntExtra("position", 0));
+
+
+        mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset,
+                                       int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+
+                String uri = mediaPaths.get(position);
+                String id = uri.substring(uri.lastIndexOf('/'));
+
+                Log.d(TAG, "onPageSelected: current page " + id);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if(state == ViewPager.SCROLL_STATE_IDLE) {
+
+                }
+                else if(state == ViewPager.SCROLL_STATE_DRAGGING) {
+                }
+                else if(state == ViewPager.SCROLL_STATE_SETTLING) {
+                }
+            }
+        });
     }
 
     private class ViewPagerAdapter extends FragmentStatePagerAdapter {
@@ -45,10 +76,13 @@ public class ViewPagerActivity extends FragmentActivity {
         @NonNull
         @Override
         public Fragment getItem(int position) {
+            Log.d(TAG, "getItem: position " + position);
+            Log.d(TAG, "getItem: mPager.getCurrentItem() " + mPager.getCurrentItem());
             String uri = mediaPaths.get(position);
+
             if(uri.contains("content://media/external/video")) {
-                Log.d(TAG, "getItem: return VideoFragment.newInstance");
-                return VideoFragment.newInstance(uri);
+                Fragment fragment = VideoFragment.newInstance(uri);
+                return fragment;
             }
             else {
                 return ImageFragment.newInstance(uri);
