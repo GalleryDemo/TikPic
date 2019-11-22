@@ -6,12 +6,15 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -20,14 +23,23 @@ import java.io.IOException;
 
 public class NewVideoFragment extends Fragment {
 
-    private static final String TAG = "TEST";
+    private static final String TAG = "MYTEST";
 
     private Context mContext;
     private MediaPlayer mMediaPlayer;
     private TextureView mTextureView;
     private Button playButton;
+    private SeekBar seekBar;
+
+    private TextView currentPositionText;
+    private TextView duration;
+
     private Surface mSurface;
     private String uri;
+
+    private boolean isFirstTime;
+    private boolean isPlaying;
+    private int currentPosition;
 
     static Fragment newInstance(String uri) {
         Bundle bundle = new Bundle();
@@ -54,6 +66,9 @@ public class NewVideoFragment extends Fragment {
         mTextureView = rootView.findViewById(R.id.textureView);
 
         mMediaPlayer = new MediaPlayer();
+        currentPosition = 0;
+        isFirstTime = true;
+
         mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -84,6 +99,24 @@ public class NewVideoFragment extends Fragment {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(isFirstTime) {
+                    isFirstTime = false;
+                    isPlaying = true;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            while (isPlaying) {
+                                if (currentPosition != mMediaPlayer.getCurrentPosition()) {
+                                    currentPosition = mMediaPlayer.getCurrentPosition();
+                                    seekBar.setProgress(currentPosition);
+                                }
+                            }
+                            Log.d(TAG, "run: seekbar sync thread stopped");
+                        }
+                    }).start();
+                }
+
                 if(mMediaPlayer.isPlaying()) {
                     mMediaPlayer.pause();
                 }
@@ -92,6 +125,37 @@ public class NewVideoFragment extends Fragment {
                 }
             }
         });
+
+        seekBar = rootView.findViewById(R.id.seekBar);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) {
+                    mMediaPlayer.seekTo(progress);
+                }
+                currentPositionText.setText(formatTime(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                Log.d(TAG, "onStartTrackingTouch: started");
+
+                mMediaPlayer.pause();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.d(TAG, "onStopTrackingTouch: stopped");
+                int process = seekBar.getProgress();
+                if(mMediaPlayer != null) {
+                    mMediaPlayer.seekTo(process);
+                }
+                mMediaPlayer.start();
+            }
+        });
+
+        duration = rootView.findViewById(R.id.duration);
+        currentPositionText = rootView.findViewById(R.id.current_pos);
 
         return rootView;
     }
@@ -138,6 +202,9 @@ public class NewVideoFragment extends Fragment {
                         // mMediaPlayer.start();
                         mMediaPlayer.seekTo(1);
                         mMediaPlayer.setLooping(true);
+                        seekBar.setMax(mMediaPlayer.getDuration());
+
+                        duration.setText(formatTime(mMediaPlayer.getDuration()));
                     }
                 });
                 mMediaPlayer.prepareAsync();
@@ -147,8 +214,21 @@ public class NewVideoFragment extends Fragment {
         }
     }
 
+    public String formatTime(int millis) {
+        int durationInSecond = millis / 1000;
+        int second = durationInSecond % 60;
+        int minute = durationInSecond / 60;
+        return String.format("%02d:", minute) + String.format("%02d", second);
+    }
+
+
     public void pauseVideo() {
         mMediaPlayer.pause();
+    }
+
+    public void stopSeekBarSyncThread() {
+        isPlaying = false;
+        Log.d(TAG, "stopSeekBarSyncThread: isPlaying switched to false");
     }
 
 }

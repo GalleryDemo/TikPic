@@ -59,15 +59,24 @@ public class ViewPagerActivity extends FragmentActivity {
                 }
                 else if(state == ViewPager.SCROLL_STATE_DRAGGING) {
                     Fragment fragment = pagerAdapter.getFragment(mPager.getCurrentItem());
-
                     if(fragment instanceof NewVideoFragment) {
                         ((NewVideoFragment) fragment).pauseVideo();
+                        ((NewVideoFragment) fragment).stopSeekBarSyncThread();
                     }
                 }
                 else if(state == ViewPager.SCROLL_STATE_SETTLING) {
                 }
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Fragment fragment = pagerAdapter.getFragment(mPager.getCurrentItem());
+        if(fragment instanceof NewVideoFragment) {
+            ((NewVideoFragment) fragment).stopSeekBarSyncThread();
+        }
     }
 
     private class ViewPagerAdapter extends FragmentStatePagerAdapter {
@@ -104,6 +113,10 @@ public class ViewPagerActivity extends FragmentActivity {
 
         public Fragment getFragment(int position) {
             return fragmentArray.get(position);
+        }
+
+        public int getFragmentCount() {
+            return fragmentArray.size();
         }
     }
 }
