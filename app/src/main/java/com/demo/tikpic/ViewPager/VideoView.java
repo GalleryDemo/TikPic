@@ -54,7 +54,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         });
         addView(textureView);
 
-        mMediaPlayer= new MediaPlayer();
+        mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setDataSource(getContext(), Uri.parse(path));
         mMediaPlayer.setSurface(surface);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -65,7 +65,6 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
             }
         });
         mMediaPlayer.prepare();
-
     }
 
     private void play() {

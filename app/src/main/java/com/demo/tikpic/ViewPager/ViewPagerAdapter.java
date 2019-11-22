@@ -20,25 +20,32 @@ public class ViewPagerAdapter extends PagerAdapter {
 
     private String TAG  = "MyPagerAdapter";
     private MainActivity mActivity;
-    private List<MediaFile> mList;
+    // private List<MediaFile> mList;
+
+    private List<String> mediaPaths;
+
     private int listIndex;
     private int imgIndex;
     private Context mContext;
     private Map<Integer, View> mViewMap;
 
-    ViewPagerAdapter(Context context, MainActivity activity_main, int listIndex, int imgIndex) {
+    ViewPagerAdapter(Context context, MainActivity mainActivity, int listIndex, int imgIndex) {
         mContext = context;
-        mActivity = activity_main;
+        mActivity = mainActivity;
         this.listIndex = listIndex;
-        mList = DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,listIndex);
-        Log.d(TAG, "ViewPagerAdapter: "+mList.size());
+
+        // mList = DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,listIndex);
+        // Log.d(TAG, "ViewPagerAdapter: "+mList.size());
+
+        mediaPaths = DataManager.getInstance(mainActivity).getImagePaths();
+
         this.imgIndex = imgIndex;
         mViewMap = new HashMap<>();
     }
 
     @Override
     public int getCount() {
-        return mList.size();
+        return mediaPaths.size();
     }
 
     @Override
@@ -47,12 +54,12 @@ public class ViewPagerAdapter extends PagerAdapter {
     }
 
 
-
     @NonNull
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
 
         MediaFile item = DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,0,0);
+
         if(item.getType() == 1) {
             Log.d(TAG, "instantiateItem: " + position);
 
@@ -62,8 +69,8 @@ public class ViewPagerAdapter extends PagerAdapter {
             container.addView(view);
             mViewMap.put(position,view);
             return view;
-
-        } else {
+        }
+        else {
             VideoView view = new VideoView(mContext, DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,listIndex, position).getPath());
             container.addView(view);
             mViewMap.put(position,view);

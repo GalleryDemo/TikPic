@@ -318,6 +318,37 @@ public class DataManager {
         }
     }
 
+    public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase) {
+        return GalleryShowCaseList.get(showcase);
+    }
+
+    public List<MediaFile> getShowcaseOrAlbumOrIndex(int showcase, int album) {
+        //get a particular album of a showcase base on the arguments
+        //and add files into this new album.
+        List<MediaFile> temp = new ArrayList<>();
+        List<Integer> indexes =  GalleryShowCaseList.get(showcase).get(album).getAlbum();
+        for(int i = 0; i < indexes.size();i++){
+            temp.add(allItemList.get(indexes.get(i)));
+        }
+
+        return temp;
+    }
+
+    public MediaFile getShowcaseOrAlbumOrIndex(int showcase, int album, int index) {
+
+        int indexInAll = GalleryShowCaseList.get(showcase).get(album).get(index);
+
+        return allItemList.get(indexInAll);
+    }
+
+    public List<Integer> getShowcaseOrAlbumOrIndexInt(int showcase, int album) {
+        //get a particular album of a showcase base on the arguments
+        //and add files into this new album.
+        return GalleryShowCaseList.get(showcase).get(album).getAlbum();
+    }
+
+
+
     private List<String> queryAllImages() {
 
         List<String> imagePaths = new ArrayList<>();
@@ -361,7 +392,7 @@ public class DataManager {
             while(cursor.moveToNext()) {
                 String id = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
                 String contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                                        .buildUpon().appendPath(id).build().toString();
+                        .buildUpon().appendPath(id).build().toString();
                 VideoPaths.add(contentUri);
             }
             cursor.close();
@@ -375,34 +406,4 @@ public class DataManager {
     public List<String> getImagePaths() {
         return imagePaths;
     }
-
-    public List<MediaAlbum> getShowcaseOrAlbumOrIndex(int showcase) {
-        return GalleryShowCaseList.get(showcase);
-    }
-
-    public List<MediaFile> getShowcaseOrAlbumOrIndex(int showcase, int album) {
-        //get a particular album of a showcase base on the arguments
-        //and add files into this new album.
-        List<MediaFile> temp = new ArrayList<>();
-        List<Integer> indexes =  GalleryShowCaseList.get(showcase).get(album).getAlbum();
-        for(int i = 0; i < indexes.size();i++){
-            temp.add(allItemList.get(indexes.get(i)));
-        }
-
-        return temp;
-    }
-
-    public MediaFile getShowcaseOrAlbumOrIndex(int showcase, int album, int index) {
-
-        int indexInAll = GalleryShowCaseList.get(showcase).get(album).get(index);
-
-        return allItemList.get(indexInAll);
-    }
-
-    public List<Integer> getShowcaseOrAlbumOrIndexInt(int showcase, int album) {
-        //get a particular album of a showcase base on the arguments
-        //and add files into this new album.
-        return GalleryShowCaseList.get(showcase).get(album).getAlbum();
-    }
-
 }

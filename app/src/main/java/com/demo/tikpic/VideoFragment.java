@@ -21,6 +21,7 @@ public class VideoFragment extends Fragment {
     private static final String TAG = "VideoFragment";
     private Context context;
     private VideoView mVideoView;
+    private MediaController controller;
     private String uri;
     private String tag;
 
@@ -59,17 +60,9 @@ public class VideoFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_video, container, false);
 
         mVideoView = view.findViewById(R.id.videoView);
-        MediaController controller = new MediaController(context);
+        controller = new MediaController(context);
         controller.setMediaPlayer(mVideoView);
         mVideoView.setMediaController(controller);
-        /*
-        mVideoView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((FragmentActivity)context).supportFinishAfterTransition();
-            }
-        });
-        */
         return view;
     }
 
@@ -132,7 +125,7 @@ public class VideoFragment extends Fragment {
                         // mVideoView.start();
                     }
                 });
-
+        controller.hide();
     }
 
     private void releasePlayer() {
@@ -149,4 +142,7 @@ public class VideoFragment extends Fragment {
         }
     }
 
+    public void pauseVideo() {
+        mVideoView.pause();
+    }
 }

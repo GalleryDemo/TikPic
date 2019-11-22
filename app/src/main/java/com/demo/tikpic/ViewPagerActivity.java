@@ -2,6 +2,7 @@ package com.demo.tikpic;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9,7 +10,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public class ViewPagerActivity extends FragmentActivity {
     // private static final String TAG = "VideoFragment";
 
     private ViewPager mPager;
-    private PagerAdapter pagerAdapter;
+    private ViewPagerAdapter pagerAdapter;
     private List<String> mediaPaths;
 
     @Override
@@ -50,44 +50,60 @@ public class ViewPagerActivity extends FragmentActivity {
                 String uri = mediaPaths.get(position);
                 String id = uri.substring(uri.lastIndexOf('/'));
 
-                Log.d(TAG, "onPageSelected: current page " + id);
+                Log.d("TEST", "onPageSelected: current page " + id);
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                /*if(state == ViewPager.SCROLL_STATE_IDLE) {
+                if(state == ViewPager.SCROLL_STATE_IDLE) {
                 }
                 else if(state == ViewPager.SCROLL_STATE_DRAGGING) {
+                    Fragment fragment = pagerAdapter.getFragment(mPager.getCurrentItem());
+
+                    if(fragment instanceof NewVideoFragment) {
+                        ((NewVideoFragment) fragment).pauseVideo();
+                    }
                 }
                 else if(state == ViewPager.SCROLL_STATE_SETTLING) {
-                }*/
+                }
             }
         });
     }
 
     private class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
+        private SparseArray<Fragment> fragmentArray;
+
         ViewPagerAdapter(FragmentManager fm) {
             super(fm);
+            fragmentArray = new SparseArray<>(getCount());
         }
 
         @NonNull
         @Override
         public Fragment getItem(int position) {
-            Log.d(TAG, "getItem: position " + position);
-            Log.d(TAG, "getItem: mPager.getCurrentItem() " + mPager.getCurrentItem());
+
             String uri = mediaPaths.get(position);
 
             if(uri.contains("content://media/external/video")) {
-                Fragment fragment = VideoFragment.newInstance(uri);
+                Log.d(TAG, "getItem: video fragment");
+                // Fragment fragment = VideoFragment.newInstance(uri);
+                Fragment fragment = NewVideoFragment.newInstance(uri);
+                fragmentArray.put(position, fragment);
                 return fragment;
             }
             else {
-                return ImageFragment.newInstance(uri);
+                Fragment fragment = ImageFragment.newInstance(uri);
+                fragmentArray.put(position, fragment);
+                return fragment;
             }
         }
 
         @Override
         public int getCount() { return mediaPaths.size(); }
+
+        public Fragment getFragment(int position) {
+            return fragmentArray.get(position);
+        }
     }
 }
