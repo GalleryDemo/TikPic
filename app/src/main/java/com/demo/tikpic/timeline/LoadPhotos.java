@@ -28,8 +28,8 @@ final class LoadPhotos {
         // albumList = dataManager.getShowcaseOrAlbumOrIndex(2);
     }
 
-    List<Photo> getPhotoListInAlbum(String key) {
-        final List<Photo> photoList = new ArrayList<>();
+    List<String> getPhotoListInAlbum(String key) {
+        final List<String> photoList = new ArrayList<>();
         /*
         for (int i = 0; i < albumList.get(index).getAlbum().size(); i++) {
             String ThumbnailPath = dataManager.getShowcaseOrAlbumOrIndex(2, index, i).getThumbnailPath();
@@ -39,7 +39,7 @@ final class LoadPhotos {
         }
          */
         for(String uri : albumMap.get(key)) {
-            photoList.add(new Photo(uri));
+            photoList.add(uri);
         }
         return photoList;
     }
