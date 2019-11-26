@@ -95,7 +95,6 @@ public class ViewPagerActivity extends FragmentActivity {
             String uri = mediaPaths.get(position);
 
             if(uri.contains("content://media/external/video")) {
-                Log.d(TAG, "getItem: video fragment");
                 // Fragment fragment = VideoFragment.newInstance(uri);
                 Fragment fragment = NewVideoFragment.newInstance(uri);
                 fragmentArray.put(position, fragment);

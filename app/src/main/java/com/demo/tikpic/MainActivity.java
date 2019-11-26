@@ -22,7 +22,7 @@ import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "MYSYNC";
+    private static final String TAG = "MainActivity";
     private static final int READ_EXTERNAL_REQUEST = 1;
 
     private AppBarConfiguration mAppBarConfiguration;

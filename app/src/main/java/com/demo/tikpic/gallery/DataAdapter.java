@@ -193,6 +193,10 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         }
     }
 
+
+
+
+
     // Creates a unique subdirectory of the designated app cache directory.
     // Tries to use external but if not mounted, falls back on internal storage.
     private static File getDiskCacheDir(Context context, String uniqueName) {
@@ -321,7 +325,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 bitmap = decodeBitmapFromStream(is, 150, 150);
             }
 
-            cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(params[0]), bitmap));
+            cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(position), bitmap));
 
             return bitmap;
         }
