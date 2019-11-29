@@ -25,7 +25,14 @@ public class MediaAlbum extends MediaFile {
     }
 
     public void addIndex(int index){
-        mIndexInAllItemList.add(index);
+        if(mIndexInAllItemList == null){
+            mIndexInAllItemList = new ArrayList<>();
+            mIndexInAllItemList.add(index);
+        }else{
+            mIndexInAllItemList.add(index);
+
+        }
+
     }
 
     public int getAlbumSize(){

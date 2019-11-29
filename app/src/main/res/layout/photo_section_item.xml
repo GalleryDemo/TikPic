@@ -32,6 +32,13 @@
                 android:scaleType="centerCrop"
                 android:id="@+id/imgItem"
                 android:contentDescription="Photo Icon" />
+            <ImageView
+                android:id="@+id/videoPlaybackIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_playback"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
         </FrameLayout>
 
     </LinearLayout>

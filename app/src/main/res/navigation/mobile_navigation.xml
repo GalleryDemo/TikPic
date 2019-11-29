@@ -16,4 +16,10 @@
         android:name="com.demo.tikpic.timeline.TimelineFragment"
         android:label="Timeline"
         tools:layout="@layout/fragment_timeline" />
+
+    <fragment
+        android:id="@+id/nav_albums"
+        android:name="com.demo.tikpic.albums.AlbumsFragment"
+        android:label="Albums"
+        tools:layout="@layout/fragment_gallery" />
 </navigation>

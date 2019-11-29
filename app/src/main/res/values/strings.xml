@@ -5,4 +5,6 @@
     <string name="nav_header_subtitle">subtitle</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_timeline">Timeline</string>
+    <string name="menu_albums">Albums</string>
+
 </resources>
