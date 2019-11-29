@@ -6,8 +6,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
+import com.demo.tikpic.gallery.DataAdapter;
+import com.demo.tikpic.itemClass.MediaFile;
 
 import java.util.List;
 
@@ -18,11 +21,13 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 final class PhotoSection extends Section {
 
     private final String title;
-    private final List<Photo> list;
+    private final List<String> list;
     private final MainActivity hostActivity;
     private final ClickListener clickListener;
+    private static final int TYPE_IMAGE = 0;
+    private static final int TYPE_VIDEO = 1;
 
-    PhotoSection(@NonNull final String title, @NonNull final List<Photo> list,
+    PhotoSection(@NonNull final String title, @NonNull final List<String> list,
                  @NonNull final MainActivity activity, @NonNull final ClickListener clickListener) {
         super(SectionParameters.builder()
                 .itemResourceId(R.layout.photo_section_item)
@@ -49,12 +54,21 @@ final class PhotoSection extends Section {
     public void onBindItemViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final ItemViewHolder itemHolder = (ItemViewHolder) holder;
 
-        final Photo photo = list.get(position);
+        final String photo = list.get(position);
 
         Glide.with(hostActivity)
                 .asBitmap()
-                .load(photo.getUrl())
+                .load(photo)
                 .into(itemHolder.imageView);
+
+//        if(allFiles.get(position).getType() == 3) {
+//            holder.mVideoIconImageView.setVisibility(View.VISIBLE);
+//            DataManager.getInstance(hostActivity).loadBitmap(position, holder, TYPE_VIDEO);
+//        }
+//        else {
+//            holder.mVideoIconImageView.setVisibility(View.GONE);
+//            DataManager.getInstance(hostActivity).loadBitmap(position, holder, TYPE_IMAGE);
+//        }
 
         itemHolder.rootView.setOnClickListener(v ->
                 clickListener.onItemRootViewClicked(title, itemHolder.getAdapterPosition())

@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
 import com.demo.tikpic.ViewPagerActivity;
@@ -42,10 +43,12 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
         sectionedAdapter = new SectionedRecyclerViewAdapter();
 
         final LoadPhotos loadPhotos = new LoadPhotos(hostActivity);
-        for(String albumName : loadPhotos.getAlbumKeySet()) {
+        final DataManager dataManager = DataManager.getInstance(hostActivity);
+
+        for(String albumName : dataManager.getAlbumKeySet()) {
             sectionedAdapter.addSection(
                     new PhotoSection(albumName,
-                            loadPhotos.getPhotoListInAlbum(albumName),
+                            dataManager.getPhotoListInAlbum(albumName),
                             hostActivity, this));
         }
 

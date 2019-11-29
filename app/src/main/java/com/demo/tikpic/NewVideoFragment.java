@@ -83,6 +83,7 @@ public class NewVideoFragment extends Fragment {
 
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                Log.d(TAG, "onSurfaceTextureDestroyed: entered");
                 mMediaPlayer.stop();
                 mMediaPlayer.release();
                 mMediaPlayer = null;
@@ -160,6 +161,24 @@ public class NewVideoFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        mMediaPlayer.pause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop: entered");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+    }
+
     private class MediaPlaybackRunnable implements Runnable {
         @Override
         public void run() {
@@ -214,19 +233,18 @@ public class NewVideoFragment extends Fragment {
         }
     }
 
-    public String formatTime(int millis) {
+    String formatTime(int millis) {
         int durationInSecond = millis / 1000;
         int second = durationInSecond % 60;
         int minute = durationInSecond / 60;
         return String.format("%02d:", minute) + String.format("%02d", second);
     }
 
-
-    public void pauseVideo() {
+    void pauseVideo() {
         mMediaPlayer.pause();
     }
 
-    public void stopSeekBarSyncThread() {
+    void stopSeekBarSyncThread() {
         isPlaying = false;
         Log.d(TAG, "stopSeekBarSyncThread: isPlaying switched to false");
     }
