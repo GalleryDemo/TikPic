@@ -17,6 +17,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -122,6 +123,9 @@ public class DataManager {
 
         // cached thread pool for BitmapWorkerTask
         cachedThreadPool = Executors.newCachedThreadPool();
+    }
+    public static DataManager getInstance() {
+        return sDataManager;
     }
 
     public static DataManager getInstance(Context context) {

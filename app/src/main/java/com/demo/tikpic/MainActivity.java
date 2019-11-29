@@ -38,15 +38,12 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawer;
-    public int[] pos = new int[]{-1, -1, -1};
     private int Gallery = 0;
     // public int mScreenWidth, mScreenHeight, mScreenOrientation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
 
         // check permission
         if (ContextCompat.checkSelfPermission(this,
@@ -71,35 +68,29 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 init();
-
             } else {
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        READ_EXTERNAL_REQUEST
-                );
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, READ_EXTERNAL_REQUEST);
             }
         }
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
-    }
+//    @Override
+//    public boolean onSupportNavigateUp() {
+//        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+//        return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
+//    }
 
     private void init() {
-
         DataManager.getInstance(this);
 
         setContentView(R.layout.activity_main);
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            // actionBar.setHomeAsUpIndicator(R.drawable.menu_button_normal);
+            //actionBar.setHomeAsUpIndicator(R.drawable.menu_button_normal);
         }
 
         drawer = findViewById(R.id.drawer_layout);
@@ -113,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(), menuItem.getTitle(), Toast.LENGTH_LONG).show();
                 Log.d(TAG, "onNavigationItemSelected: ");
                 switch (menuItem.getItemId()) {
-
                     case R.id.nav_gallery:
                         replaceFragment(new GalleryFragment(), false);
                         Gallery = 1;
@@ -131,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+        Gallery = 1;
         replaceFragment(new GalleryFragment(), false);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -146,6 +137,10 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 drawer.openDrawer(GravityCompat.START);
+                break;
+            case R.id.setting:
+                Toast.makeText(this,"大图界面003",Toast.LENGTH_SHORT).show();
+                photoPage(0,0,3);
                 break;
         }
         return true;
@@ -196,8 +191,10 @@ public class MainActivity extends AppCompatActivity {
     }
     */
 
-    private void photoPage(int gallryIndex,int albumIndex,int ItemIndex){
-        replaceFragment(new ViewPagerFragment());
+    private void photoPage(int gallryIndex, int albumIndex, int itemIndex) {
+        ViewPagerFragment viewPagerFragment = new ViewPagerFragment();
+        viewPagerFragment.setPosition(gallryIndex, albumIndex, itemIndex);
+        replaceFragment(viewPagerFragment);
 
     }
 }
