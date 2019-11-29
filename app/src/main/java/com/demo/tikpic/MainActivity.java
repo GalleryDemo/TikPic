@@ -25,6 +25,8 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.demo.tikpic.ViewPager.ViewPagerFragment;
+import com.demo.tikpic.albums.AlbumsFragment;
 import com.demo.tikpic.gallery.GalleryFragment;
 import com.demo.tikpic.timeline.TimelineFragment;
 import com.google.android.material.navigation.NavigationView;
@@ -114,11 +116,15 @@ public class MainActivity extends AppCompatActivity {
 
                     case R.id.nav_gallery:
                         replaceFragment(new GalleryFragment(), false);
-                        Gallery = 0;
+                        Gallery = 1;
                         break;
                     case R.id.nav_timeline:
                         replaceFragment(new TimelineFragment(), false);
-                        Gallery = 1;
+                        Gallery = 2;
+                        break;
+                    case R.id.nav_albums:
+                        replaceFragment(new AlbumsFragment(), false);
+                        Gallery = 0;
                         break;
                 }
                 drawer.closeDrawers();
@@ -189,4 +195,9 @@ public class MainActivity extends AppCompatActivity {
         mScreenOrientation = mWindowManager.getDefaultDisplay().getRotation();
     }
     */
+
+    private void photoPage(int gallryIndex,int albumIndex,int ItemIndex){
+        replaceFragment(new ViewPagerFragment());
+
+    }
 }
