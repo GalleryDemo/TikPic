@@ -44,7 +44,7 @@ public class ViewPagerActivity extends FragmentActivity {
         pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         mPager.setAdapter(pagerAdapter);
         int a = getIntent().getIntExtra("position", 0);
-
+        Log.d(TAG, "onCreate - A: " + a );
         mPager.setCurrentItem(a);
 
 
@@ -52,7 +52,7 @@ public class ViewPagerActivity extends FragmentActivity {
             @Override
             public void onPageScrolled(int position, float positionOffset,
                                        int positionOffsetPixels) {
-                Log.d(TAG, "onCreate: FINISHED " );
+
             }
 
             @Override
@@ -121,7 +121,7 @@ public class ViewPagerActivity extends FragmentActivity {
         @NonNull
         @Override
         public Fragment getItem(int position) {
-
+            Log.d(TAG, "getItem: " + position);
             MediaFile file = allFiles.get(position);
             if(file.getType() == 3) {
                 // Fragment fragment = VideoFragment.newInstance(uri);

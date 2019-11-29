@@ -18,10 +18,14 @@ import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.disklrucache.DiskLruCache;
+import com.demo.tikpic.albums.AlbumsAdapter;
 import com.demo.tikpic.gallery.DataAdapter;
 import com.demo.tikpic.itemClass.MediaAlbum;
 import com.demo.tikpic.itemClass.MediaFile;
+import com.demo.tikpic.timeline.ItemViewHolder;
 
 
 import java.io.ByteArrayOutputStream;
@@ -56,7 +60,7 @@ public class DataManager {
     //all media files are stored in this list.
     private List<MediaFile> allItemList;
     private List<String> imagePaths;
-    private Map<String, List<String>> albumMap;
+    private Map<String, List<Integer>> albumMap;
 
 
     private Context mContext;
@@ -66,6 +70,8 @@ public class DataManager {
 
     // Memory Cache
     private LruCache<String, Bitmap> memoryCache;
+    private LruCache<String, Bitmap> albumMemoryCache;
+
 
     // Disk Cache
     private DiskLruCache diskLruCache;
@@ -98,6 +104,12 @@ public class DataManager {
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024); // in KiloBytes
         final int cacheSize = maxMemory / 8; // in KiloBytes
         memoryCache = new LruCache<String, Bitmap>(cacheSize) {
+            @Override
+            protected int sizeOf(String key, Bitmap value) {
+                return value.getByteCount() / 1024; // in KiloBytes
+            }
+        };
+        albumMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override
             protected int sizeOf(String key, Bitmap value) {
                 return value.getByteCount() / 1024; // in KiloBytes
@@ -189,9 +201,10 @@ public class DataManager {
                 String yyyyMM = year + "/" + month;
                 // add record
                 if(albumMap.get(yyyyMM) == null) {
+                    Log.d(TAG, "scanMediaFiles - AlbumMap: " + albumMap.get(yyyyMM) );
                     albumMap.put(yyyyMM, new ArrayList<>());
                 }
-                albumMap.get(yyyyMM).add(contentUri);
+                albumMap.get(yyyyMM).add(indexNumber);
 
                 //creating albums base on the files' folder
                 String albumPath = path.substring(0, path.length() - name.length() - 1);
@@ -281,7 +294,7 @@ public class DataManager {
         //create new album for all picture showcase;
         String name = "AllPictures";
         String path = "AllPictures";
-        MediaAlbum singleAlbum = new MediaAlbum(path,name,1,0,allItemList.get(0).getThumbnailPath());
+        MediaAlbum singleAlbum = new MediaAlbum(path,name,1);
         //create a showcase that only holds one album which is the "singleAlbum"
         List<MediaAlbum> allPictureShowcase = new ArrayList<>();
         allPictureShowcase.add(singleAlbum);
@@ -400,8 +413,8 @@ public class DataManager {
         return albumMap.keySet();
     }
 
-    public List<String> getPhotoListInAlbum(String key) {
-        final List<String> photoList = new ArrayList<>();
+    public List<Integer> getPhotoListInAlbum(String key) {
+        final List<Integer> photoList = new ArrayList<>();
         /*
         for (int i = 0; i < albumList.get(index).getAlbum().size(); i++) {
             String ThumbnailPath = dataManager.getShowcaseOrAlbumOrIndex(2, index, i).getThumbnailPath();
@@ -410,14 +423,15 @@ public class DataManager {
             photoList.add(new Photo(ThumbnailPath));
         }
          */
-        for(String uri : albumMap.get(key)) {
-            photoList.add(uri);
+        for(int index : albumMap.get(key)) {
+            photoList.add(index);
         }
         return photoList;
     }
 
 
     public void loadBitmap(int position, DataAdapter.ViewHolder viewHolder, int mediaType) {
+
         ImageView imageView = viewHolder.mImageView;
 
         // check if bitmap is cached in memory
@@ -448,6 +462,81 @@ public class DataManager {
         }
     }
 
+    public void loadBitmap(int position, ItemViewHolder viewHolder, int mediaType) {
+
+        ImageView imageView = viewHolder.imageView;
+
+        // check if bitmap is cached in memory
+        Bitmap bitmap = getBitmapFromMemCache(String.valueOf(position));
+        if (bitmap != null) {
+            imageView.setImageBitmap(bitmap);
+            Log.d(TAG, "loadBitmap: position " + position + " memory hit");
+        }
+        else { // // check if bitmap is cached in disk
+            bitmap = getBitmapFromDiskCache(String.valueOf(position));
+            if (bitmap != null) {
+                imageView.setImageBitmap(bitmap);
+                memoryCache.put(String.valueOf(position), bitmap);
+                Log.d(TAG, "loadBitmap: position " + position + " disk hit");
+            }
+            else {
+                if(!viewHolder.isLoading()) {
+                    // change viewholder's loading state from false to true
+                    viewHolder.switchLoadState();
+
+                    BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
+                    imageView.setTag(workerTask);
+                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, mediaType);
+                    // workerTask.execute(position, mediaType);
+                    Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
+                }
+            }
+        }
+    }
+
+    public void loadBitmap(int position, AlbumsAdapter.ViewHolder viewHolder, int adapterType) {
+
+        ImageView imageView = viewHolder.albumCoverImage;
+
+        int width = viewHolder.getCoverSize();
+        Log.d("ayayaya", "loadBitmap - width 1:" + viewHolder.getCoverSize());
+
+        if(position == 0){
+            position = -1;
+        }else{
+            position = position * (-2);
+        }
+
+        // check if bitmap is cached in memory
+        Bitmap bitmap = getBitmapFromAlbumMemCache(String.valueOf(position));
+        if (bitmap != null) {
+            imageView.setImageBitmap(bitmap);
+            Log.d(TAG, "loadBitmap: position " + position + " memory hit");
+
+        }
+        else { // // check if bitmap is cached in disk
+
+            bitmap = getBitmapFromDiskCache(String.valueOf(position));
+            if (bitmap != null) {
+                imageView.setImageBitmap(bitmap);
+                albumMemoryCache.put(String.valueOf(position), bitmap);
+                Log.d(TAG, "loadBitmap: position " + position + " disk hit. albumMemSize: "+ albumMemoryCache.size()+ " MY Albums count: "+ getShowcaseOrAlbumOrIndex(0).size());
+            }
+            else {
+                if(!viewHolder.isLoading()) {
+                    // change viewholder's loading state from false to true
+                    viewHolder.switchLoadState();
+
+                    BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
+                    imageView.setTag(workerTask);
+                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, adapterType, width);
+                    // workerTask.execute(position, mediaType);
+                    Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
+                }
+            }
+        }
+    }
+
     // Creates a unique subdirectory of the designated app cache directory.
     // Tries to use external but if not mounted, falls back on internal storage.
     private static File getDiskCacheDir(Context context, String uniqueName) {
@@ -462,18 +551,27 @@ public class DataManager {
         return new File(cachePath + File.separator + uniqueName);
     }
 
-    private void addBitmapToCache(String key, Bitmap bitmap) {
-        // Add to memory cache
-        if (getBitmapFromMemCache(key) == null) {
-            memoryCache.put(key, bitmap);
+    private void addBitmapToCache(String key, Bitmap bitmap,int style) {
+        if(style == 1){
+            // Add to memory cache
+            if (getBitmapFromMemCache(key) == null) {
+                memoryCache.put(key, bitmap);
+            }
+        }else{
+            if (getBitmapFromAlbumMemCache(key) == null) {
+                albumMemoryCache.put(key, bitmap);
+            }
         }
+
 
         // Also add to disk cache
         synchronized (diskCacheLock) {
             try {
+                if(diskLruCache != null && style == 3 && diskLruCache.get(key) != null ){
+                        diskLruCache.remove(key);
+                }
                 if (diskLruCache != null && diskLruCache.get(key) == null) {
                     DiskLruCache.Editor editor = diskLruCache.edit(key);
-
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
                     byte[]bytes = byteArrayOutputStream.toByteArray();
@@ -492,6 +590,9 @@ public class DataManager {
 
     private Bitmap getBitmapFromMemCache(String key) {
         return memoryCache.get(key);
+    }
+    private Bitmap getBitmapFromAlbumMemCache(String key) {
+        return albumMemoryCache.get(key);
     }
 
     private Bitmap getBitmapFromDiskCache(String key) {
@@ -541,7 +642,8 @@ public class DataManager {
 
     class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
 
-        private WeakReference<DataAdapter.ViewHolder> viewHolderWeakRef;
+        private WeakReference<RecyclerView.ViewHolder> viewHolderWeakRef;
+
         private WeakReference<ImageView> imageViewWeakRef;
         private InputStream is = null;
 
@@ -550,13 +652,43 @@ public class DataManager {
             imageViewWeakRef = new WeakReference<>(viewHolder.mImageView);
         }
 
+        BitmapWorkerTask(ItemViewHolder viewHolder) {
+            viewHolderWeakRef = new WeakReference<>(viewHolder);
+            imageViewWeakRef = new WeakReference<>(viewHolder.imageView);
+        }
+
+        BitmapWorkerTask(AlbumsAdapter.ViewHolder viewHolder) {
+            viewHolderWeakRef = new WeakReference<>(viewHolder);
+            imageViewWeakRef = new WeakReference<>(viewHolder.albumCoverImage);
+        }
+
+
+
+
         @Override
         protected Bitmap doInBackground(Integer... params) {
-            Log.d(TAG, "doInBackground: entered, position: "+ params[0]);
+
 
             int position = params[0];
+            int width = 150;
+            MediaFile file;
+            Log.d("ayayaya", "doInBackground: entered, length: "+ params.length);
+            //
+            if(params.length == 3){
+                width = params[2];
+                Log.d("ayayaya", "doInBackground: entered, WIDTH: "+ params[2]);
+                if(position == -1){
+                    file = allItemList.get(position + 1);
+                }else{
+                    file = allItemList.get(position/(-2));
+                }
+
+            }else{
+                file = allItemList.get(position);
+            }
+
             //String path = imageUrlList.get(position);
-            MediaFile file = allItemList.get(position);
+
             final Bitmap bitmap;
 
             // Video
@@ -576,11 +708,16 @@ public class DataManager {
                     e.printStackTrace();
                 }
 
-                bitmap = decodeBitmapFromStream(is, 150, 150);
+                bitmap = decodeBitmapFromStream(is, width, width);
                 Log.d(TAG,"IS： "+ is);
             }
 
-            cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(position), bitmap));
+            if(params.length == 3){
+                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(position), bitmap,3));
+            }else{
+                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(position), bitmap,1));
+            }
+
 
             return bitmap;
         }
@@ -599,9 +736,24 @@ public class DataManager {
 
             if (bitmap != null && imageViewWeakRef != null) {
                 final ImageView imageView = imageViewWeakRef.get();
+
                 if(imageView != null) {
                     imageView.setImageBitmap(bitmap);
-                    viewHolderWeakRef.get().switchLoadState();
+                    if(viewHolderWeakRef.get() instanceof DataAdapter.ViewHolder){
+                        DataAdapter.ViewHolder holder = (DataAdapter.ViewHolder)viewHolderWeakRef.get();
+                        holder.switchLoadState();
+                    }
+                    if(viewHolderWeakRef.get() instanceof ItemViewHolder){
+                        ItemViewHolder holder = (ItemViewHolder)viewHolderWeakRef.get();
+                        holder.switchLoadState();
+                    }
+
+                    if(viewHolderWeakRef.get() instanceof AlbumsAdapter.ViewHolder){
+                        AlbumsAdapter.ViewHolder holder = (AlbumsAdapter.ViewHolder)viewHolderWeakRef.get();
+                        holder.switchLoadState();
+                    }
+
+
                 }
             }
         }

@@ -1,7 +1,9 @@
 package com.demo.tikpic.timeline;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +24,10 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapt
 
 public class TimelineFragment extends Fragment implements PhotoSection.ClickListener {
 
+
+    private static final String TAG = "TimelineFragment";
     private MainActivity hostActivity;
-    private SectionedRecyclerViewAdapter sectionedAdapter;
+    private MyAdapter sectionedAdapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,12 +44,13 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
 
         final View view = inflater.inflate(R.layout.fragment_timeline, container, false);
 
-        sectionedAdapter = new SectionedRecyclerViewAdapter();
+        sectionedAdapter = new MyAdapter();
 
         final LoadPhotos loadPhotos = new LoadPhotos(hostActivity);
         final DataManager dataManager = DataManager.getInstance(hostActivity);
 
         for(String albumName : dataManager.getAlbumKeySet()) {
+            Log.d(TAG, "onCreateView: " + albumName);
             sectionedAdapter.addSection(
                     new PhotoSection(albumName,
                             dataManager.getPhotoListInAlbum(albumName),
@@ -93,7 +98,26 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
 
         Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
         intent.putExtra("position", itemAdapterPosition);
+        Log.d("DEBUGALL", "onClick - photoAdapter - itemAdapterPosition:  "+itemAdapterPosition);
         hostActivity.startActivity(intent);
     }
 
+}
+
+class MyAdapter extends SectionedRecyclerViewAdapter{
+
+    @Override
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+        if(holder instanceof ItemViewHolder){
+            ItemViewHolder itemViewHolder = (ItemViewHolder)holder;
+
+            if(itemViewHolder.isLoading()) {
+                itemViewHolder.switchLoadState();
+                //Log.d(TAG, "onViewRecycled: loading state switched");
+                ((AsyncTask) itemViewHolder.imageView.getTag()).cancel(true);
+            }
+        }
+
+    }
 }

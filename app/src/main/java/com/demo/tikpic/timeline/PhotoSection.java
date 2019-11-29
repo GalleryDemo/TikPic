@@ -1,5 +1,6 @@
 package com.demo.tikpic.timeline;
 
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -18,16 +19,19 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.Section;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 
 
+
+
 final class PhotoSection extends Section {
 
     private final String title;
-    private final List<String> list;
+    private final List<Integer> list;
     private final MainActivity hostActivity;
     private final ClickListener clickListener;
     private static final int TYPE_IMAGE = 0;
     private static final int TYPE_VIDEO = 1;
+    private static final String TAG = "PhotoSection";
 
-    PhotoSection(@NonNull final String title, @NonNull final List<String> list,
+    PhotoSection(@NonNull final String title, @NonNull final List<Integer> list,
                  @NonNull final MainActivity activity, @NonNull final ClickListener clickListener) {
         super(SectionParameters.builder()
                 .itemResourceId(R.layout.photo_section_item)
@@ -54,25 +58,32 @@ final class PhotoSection extends Section {
     public void onBindItemViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final ItemViewHolder itemHolder = (ItemViewHolder) holder;
 
-        final String photo = list.get(position);
+        final int positionInAll = list.get(position);
+        Log.d("DEBUGALL", "onBindItemViewHolder position: " + position);
+//
+//        Glide.with(hostActivity)
+//                .asBitmap()
+//                .load(photo)
+//                .into(itemHolder.imageView);
 
-        Glide.with(hostActivity)
-                .asBitmap()
-                .load(photo)
-                .into(itemHolder.imageView);
+        itemHolder.imageView.setImageDrawable(
+                hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
 
-//        if(allFiles.get(position).getType() == 3) {
-//            holder.mVideoIconImageView.setVisibility(View.VISIBLE);
-//            DataManager.getInstance(hostActivity).loadBitmap(position, holder, TYPE_VIDEO);
-//        }
-//        else {
-//            holder.mVideoIconImageView.setVisibility(View.GONE);
-//            DataManager.getInstance(hostActivity).loadBitmap(position, holder, TYPE_IMAGE);
-//        }
+        if(DataManager.getInstance(hostActivity).getAllItemList().get(positionInAll).getType() == 3) {
+            //Log.d("DEBUGALL", "onBindItemViewHolder: " + positionInAll);
+            itemHolder.mVideoIconImageView.setVisibility(View.VISIBLE);
+            DataManager.getInstance(hostActivity).loadBitmap(positionInAll, itemHolder, TYPE_VIDEO);
+        }
+        else {
+            itemHolder.mVideoIconImageView.setVisibility(View.GONE);
+            DataManager.getInstance(hostActivity).loadBitmap(positionInAll, itemHolder, TYPE_IMAGE);
+        }
 
+        //TODO: The positionInAll variable might be in accurate on a insert/deletion action.
         itemHolder.rootView.setOnClickListener(v ->
-                clickListener.onItemRootViewClicked(title, itemHolder.getAdapterPosition())
+                clickListener.onItemRootViewClicked(title, positionInAll)
         );
+
     }
 
     @Override

@@ -12,6 +12,10 @@
             android:id="@+id/nav_timeline"
             android:icon="@drawable/ic_timeline"
             android:title="@string/menu_timeline" />
+        <item
+            android:id="@+id/nav_albums"
+            android:icon="@drawable/ic_timeline"
+            android:title="@string/menu_albums" />
     </group>
 
 </menu>
