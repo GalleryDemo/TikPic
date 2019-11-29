@@ -1,15 +1,19 @@
 package com.demo.tikpic.ViewPager;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.PagerAdapter;
 
 import com.demo.tikpic.DataManager;
+import com.demo.tikpic.ImageFragment;
 import com.demo.tikpic.MainActivity;
+import com.demo.tikpic.NewVideoFragment;
 import com.demo.tikpic.itemClass.MediaFile;
 
 import java.util.HashMap;
@@ -58,13 +62,25 @@ public class ViewPagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
 
+
+        String uri = mediaPaths.get(position);
+
+        if(uri.contains("content://media/external/video")) {
+
+        }
+        else {
+
+        }
+
+
         MediaFile item = DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0,0,0);
 
         if(item.getType() == 1) {
             Log.d(TAG, "instantiateItem: " + position);
 
-            ImageDisplayView view = new ImageDisplayView(mContext, mActivity);
-            view.setAlbumImage(position, listIndex);
+            ImageDisplayView view = new ImageDisplayView(mContext);
+
+            view.setUri(Uri.parse("content://media/external/images/media/154701"));
 
             container.addView(view);
             mViewMap.put(position,view);

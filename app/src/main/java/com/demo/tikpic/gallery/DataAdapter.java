@@ -25,6 +25,7 @@ import com.bumptech.glide.disklrucache.DiskLruCache;
 import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
+import com.demo.tikpic.ViewPager.ViewPagerFragment;
 import com.demo.tikpic.ViewPagerActivity;
 
 import java.io.ByteArrayOutputStream;
@@ -152,11 +153,13 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
         @Override
         public void onClick(View v) {
+
+
             Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
             intent.putExtra("position", getAdapterPosition());
             hostActivity.startActivity(intent);
 
-            // hostActivity.replaceFragment(new ViewPagerFragment());
+             hostActivity.replaceFragment(new ViewPagerFragment());
         }
     }
 

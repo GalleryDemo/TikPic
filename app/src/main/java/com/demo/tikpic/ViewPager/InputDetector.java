@@ -1,6 +1,7 @@
 package com.demo.tikpic.ViewPager;
 
 import android.graphics.Point;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import androidx.core.view.MotionEventCompat;
@@ -20,6 +21,8 @@ public class InputDetector {
     public int gestureX, gestureY;
     private int num_h;
 
+    public int mo=0;
+
     public boolean in67;
 
     private String TAG = "InputDetector";
@@ -34,8 +37,10 @@ public class InputDetector {
     }
 
     public boolean onTouchEvent(MotionEvent e) {
+
         stateJump(e);
-        return true;
+        Log.d(TAG, "onTouchEvent: "+ MotionEventCompat.getActionMasked(e)+"//"+mo);
+       return true;
     }
 
     //状态跳转表
