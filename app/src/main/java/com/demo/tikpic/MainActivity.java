@@ -159,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
     private void replaceFragment(Fragment fragment, boolean isInStack) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         transaction.replace(R.id.nav_host_fragment, fragment);
         if (isInStack) {
             transaction.addToBackStack(null);
