@@ -1,4 +1,4 @@
-package com.demo.tikpic.ViewPager;
+package com.demo.tikpic.view;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
@@ -76,10 +76,9 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     }
 
 
-
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceT, int width, int height) {
-        surface=new Surface(surfaceT);
+        surface = new Surface(surfaceT);
         play();
     }
 
@@ -90,8 +89,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceT) {
-        surfaceT=null;
-        surface=null;
+        surfaceT = null;
+        surface = null;
         mMediaPlayer.stop();
         mMediaPlayer.release();
         return true;

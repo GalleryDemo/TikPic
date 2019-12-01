@@ -1,4 +1,4 @@
-package com.demo.tikpic.ViewPager;
+package com.demo.tikpic.view;
 
 import android.graphics.Point;
 import android.util.Log;
@@ -21,10 +21,6 @@ public class InputDetector {
     public int gestureX, gestureY;
     private int num_h;
 
-    public int mo=0;
-
-    public boolean in67;
-
     private String TAG = "InputDetector";
 
     public interface OnInputListener {
@@ -39,7 +35,6 @@ public class InputDetector {
     public boolean onTouchEvent(MotionEvent e) {
 
         stateJump(e);
-        Log.d(TAG, "onTouchEvent: "+ MotionEventCompat.getActionMasked(e)+"//"+mo);
        return true;
     }
 
@@ -49,13 +44,13 @@ public class InputDetector {
         x = event.getX();
         y = event.getY();
 
-        if(num_h>1){
+        if(num_h>1) {
 
             distance = distance(event);
             middle = middle(event);
         }
-
         switch (MotionEventCompat.getActionMasked(event)) {
+
             // 单指
             case MotionEvent.ACTION_DOWN:
                 mLastX = x;
@@ -66,9 +61,7 @@ public class InputDetector {
 
                 num_h = 1;
 
-                in67=true;
-
-                state = stateTable[state][0];
+                state = stateTable[0][0];
                 break;
             case MotionEvent.ACTION_UP:
                 num_h = 0;
@@ -88,24 +81,14 @@ public class InputDetector {
                     middle = middle(event);
                 }
 
-
-
                 //移动了距离才算移动
                 if (Math.abs(dx) >= 1 || Math.abs(dy) >= 1) {
                     state = stateTable[state][2];
-                }
-                if (Math.abs(gestureX) < 300&&in67) {
-                    if (gestureY > 400) {
-                        state = 6;
-                    } else if (gestureY < -400) {
-                        state = 7;
-                    }
                 }
                 mLastX = x;
                 mLastY = y;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
-                in67=false;
                 num_h++;
                 state = stateTable[state][3];
                 distance = distance(event);
@@ -133,14 +116,6 @@ public class InputDetector {
         switch (state) {
             case 4:
                 state = 0;
-                break;
-            case 6:
-                in67=false;
-                state = 3;
-                break;
-            case 7:
-                in67=false;
-                state = 3;
                 break;
         }
     }

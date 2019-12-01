@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.GridLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,12 +19,9 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
-import com.demo.tikpic.ViewPager.ViewPagerFragment;
+import com.demo.tikpic.viewpager.ViewPagerFragment;
 import com.demo.tikpic.albums.AlbumsFragment;
 import com.demo.tikpic.gallery.GalleryFragment;
 import com.demo.tikpic.timeline.TimelineFragment;

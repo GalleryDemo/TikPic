@@ -1,4 +1,4 @@
-package com.demo.tikpic.ViewPager;
+package com.demo.tikpic.view;
 
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -12,7 +12,7 @@ public class ImageLoader {
 
     public ImageLoader() {
         int maxMemory = (int)(Runtime.getRuntime().maxMemory() / 1024);
-        int cacheSize = maxMemory / 4;
+        int cacheSize = maxMemory / 3;
         Log.d(TAG, "ImageLoader: maxMemory"+maxMemory+"//cachesize :"+cacheSize);
         lruCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override
@@ -33,7 +33,7 @@ public class ImageLoader {
     }
 
     public int getCount(){
-        return lruCache.size();
+        return lruCache.putCount();
     }
 
 }

@@ -1,4 +1,4 @@
-package com.demo.tikpic.ViewPager;
+package com.demo.tikpic.viewpager;
 
 import android.content.Context;
 import android.net.Uri;
@@ -7,14 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.PagerAdapter;
 
-import com.demo.tikpic.DataManager;
-import com.demo.tikpic.ImageFragment;
-import com.demo.tikpic.MainActivity;
-import com.demo.tikpic.NewVideoFragment;
 import com.demo.tikpic.itemClass.MediaFile;
+import com.demo.tikpic.view.ImageDisplayView;
+import com.demo.tikpic.view.VideoView;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,5 +65,33 @@ public class ViewPagerAdapter extends PagerAdapter {
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         //super.destroyItem(container, position, object);
         container.removeView(mViewMap.get(position));
+        mViewMap.remove(position);
+    }
+
+    public void resume(int position){
+        if(position!=0){
+            if(mList.get(position-1).getType()==1){
+                ImageDisplayView view = (ImageDisplayView) mViewMap.get(position-1);
+                if(view!=null){
+                    view.reset();
+                }
+            }
+
+        }
+        if(position!=mList.size()){
+            if(mList.get(position+1).getType()==1){
+                ImageDisplayView view = (ImageDisplayView) mViewMap.get(position+1);
+                if(view!=null){
+                    view.reset();
+                }
+            }
+        }
+        Log.d("zzzzzzzzzzzzz", "resume: "+mList.get(position).getType());
+//        if(mList.get(position).getType()==1){
+//            ImageDisplayView view = (ImageDisplayView) mViewMap.get(position+1);
+//            if(view!=null){
+//
+//            }
+//        }
     }
 }
