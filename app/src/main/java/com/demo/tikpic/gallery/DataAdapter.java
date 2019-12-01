@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
 import com.demo.tikpic.R;
@@ -72,7 +73,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         }
         else {
             holder.mVideoIconImageView.setVisibility(View.GONE);
-            DataManager.getInstance(hostActivity).loadBitmap(index, holder, TYPE_IMAGE);
+           // DataManager.getInstance(hostActivity).loadBitmap(index, holder, TYPE_IMAGE);
+            Glide.with(holder.rootView).load(DataManager.getInstance().getShowcaseOrAlbumOrIndex(1,0,position).getPath()).into(holder.mImageView);
         }
 
         holder.rootView.setOnClickListener(v ->

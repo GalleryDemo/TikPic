@@ -6,4 +6,5 @@
     <color name="textColorPrimary">#FFFFFF</color>
     <color name="windowBackground">#2B2A30</color>
     <color name="black">#000000</color>
+    <color name="cardview_dark_background">#FF2b2a30</color>
 </resources>

@@ -73,9 +73,11 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
     @Override
     public void onClick(int position) {
 
-        Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
-        intent.putExtra("position", position);
-        Log.d("DEBUGALL", "onClick - dataAdapter - getAdapterPosition:  "+ position);
-        hostActivity.startActivity(intent);
+//        Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
+//        intent.putExtra("position", position);
+//        Log.d("DEBUGALL", "onClick - dataAdapter - getAdapterPosition:  "+ position);
+//        hostActivity.startActivity(intent);
+
+        hostActivity.photoPage(1,0,position);
     }
 }

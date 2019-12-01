@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            //actionBar.setHomeAsUpIndicator(R.drawable.menu_button_normal);
+            actionBar.setHomeAsUpIndicator(R.drawable.menu_icon);
         }
 
         drawer = findViewById(R.id.drawer_layout);
@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
     }
     */
 
-    private void photoPage(int gallryIndex, int albumIndex, int itemIndex) {
+    public void photoPage(int gallryIndex, int albumIndex, int itemIndex) {
         ViewPagerFragment viewPagerFragment = new ViewPagerFragment();
         viewPagerFragment.setPosition(gallryIndex, albumIndex, itemIndex);
         replaceFragment(viewPagerFragment);

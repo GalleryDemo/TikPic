@@ -53,7 +53,6 @@ public class ViewPagerFragment extends Fragment {
         }
         mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //隐藏状态栏
 
-        // Log.d(TAG, "onCreateView: " + DataManager.getInstance(mActivity).getShowcaseOrAlbumOrIndex(0).size());
         if(gallryIndex==-1&&albumIndex==-1&&itemIndex==-1){
             Toast.makeText(getContext(),"没有坐标",Toast.LENGTH_LONG).show();
             return null;
@@ -66,11 +65,6 @@ public class ViewPagerFragment extends Fragment {
             return view;
         }
 
-
-      /* VideoDisplayView view = new VideoDisplayView(mContext);
-       view.setResourse(mActivity.data.get(mListIndex,mPicIndex).getPath());
-       return view;*/
-
     }
 
     public void setPosition(int gallryIndex,int albumIndex,int itemIndex){
@@ -79,4 +73,12 @@ public class ViewPagerFragment extends Fragment {
         this.itemIndex=itemIndex;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        if (mActivity.getSupportActionBar() != null) {
+            mActivity.getSupportActionBar().show();
+        }
+    }
 }

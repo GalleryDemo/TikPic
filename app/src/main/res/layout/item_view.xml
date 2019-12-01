@@ -9,20 +9,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="5dp"
-        android:layout_margin="4dp">
+        android:layout_margin="2dp">
         <ImageView
             android:id="@+id/itemImageView"
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:scaleType="centerCrop"/>
-        <TextView
+        <!--<TextView
             android:text="test"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:textSize="15sp"
             android:textColor="#FFFFFF"
             android:background="#92000000"
-            android:layout_gravity="bottom"/>
+            android:layout_gravity="bottom"/>-->
         <ImageView
             android:id="@+id/videoPlaybackIcon"
             android:layout_width="wrap_content"
