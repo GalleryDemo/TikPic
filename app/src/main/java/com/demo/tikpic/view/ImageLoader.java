@@ -12,7 +12,7 @@ public class ImageLoader {
 
     public ImageLoader() {
         int maxMemory = (int)(Runtime.getRuntime().maxMemory() / 1024);
-        int cacheSize = maxMemory / 3;
+        int cacheSize = maxMemory / 4;
         Log.d(TAG, "ImageLoader: maxMemory"+maxMemory+"//cachesize :"+cacheSize);
         lruCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override
@@ -31,9 +31,4 @@ public class ImageLoader {
     public Bitmap getBitmap(String key) {
         return lruCache.get(key);
     }
-
-    public int getCount(){
-        return lruCache.putCount();
-    }
-
 }

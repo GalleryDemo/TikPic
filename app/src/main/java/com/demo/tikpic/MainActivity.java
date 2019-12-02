@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(R.drawable.menu_icon);
+            actionBar.setHomeAsUpIndicator(R.drawable.menu_button_normal);
         }
 
         drawer = findViewById(R.id.drawer_layout);
@@ -135,8 +135,7 @@ public class MainActivity extends AppCompatActivity {
                 drawer.openDrawer(GravityCompat.START);
                 break;
             case R.id.setting:
-                Toast.makeText(this,"大图界面003",Toast.LENGTH_SHORT).show();
-                photoPage(0,0,3);
+                Toast.makeText(this,"设置",Toast.LENGTH_SHORT).show();
                 break;
         }
         return true;

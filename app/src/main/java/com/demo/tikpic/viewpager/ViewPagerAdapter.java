@@ -64,8 +64,18 @@ public class ViewPagerAdapter extends PagerAdapter {
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         //super.destroyItem(container, position, object);
-        container.removeView(mViewMap.get(position));
-        mViewMap.remove(position);
+        MediaFile item = mList.get(position);
+
+        if (item.getType() == 1) {
+            ImageDisplayView view = (ImageDisplayView)mViewMap.get(position);
+            view.destroy();
+            container.removeView(view);
+            mViewMap.remove(position);
+        }else{
+            container.removeView(mViewMap.get(position));
+            mViewMap.remove(position);
+        }
+
     }
 
     public void resume(int position){
