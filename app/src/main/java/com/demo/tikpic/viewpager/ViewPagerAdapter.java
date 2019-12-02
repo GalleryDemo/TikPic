@@ -47,7 +47,10 @@ public class ViewPagerAdapter extends PagerAdapter {
         MediaFile item = mList.get(position);
 
         if (item.getType() == 1) {
+            Log.d(TAG, "instantiateItem: 11");
             ImageDisplayView view = new ImageDisplayView(mContext);
+
+            Log.d(TAG, "instantiateItem: 22");
             view.setUri(Uri.parse(item.getPath()));
             container.addView(view);
             mViewMap.put(position, view);
@@ -70,12 +73,10 @@ public class ViewPagerAdapter extends PagerAdapter {
             ImageDisplayView view = (ImageDisplayView)mViewMap.get(position);
             view.destroy();
             container.removeView(view);
-            mViewMap.remove(position);
-        }else{
-            container.removeView(mViewMap.get(position));
-            mViewMap.remove(position);
+            mViewMap.remove(view);
         }
-
+        container.removeView(mViewMap.get(position));
+        mViewMap.remove(position);
     }
 
     public void resume(int position){

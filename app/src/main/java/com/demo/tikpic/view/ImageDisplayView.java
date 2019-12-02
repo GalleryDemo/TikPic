@@ -250,8 +250,8 @@ public class ImageDisplayView extends View {
 
                 final String key = mImage.sampleSize + "/" + i + "/" + j;
 
-                if(blockState.containsKey(mImage.sampleSize + "//" + ni + "/" + nj)){
-                    if( blockState.get(mImage.sampleSize + "//" + ni + "/" + nj).compareTo(key)==0){
+                if (blockState.containsKey(mImage.sampleSize + "//" + ni + "/" + nj)) {
+                    if (blockState.get(mImage.sampleSize + "//" + ni + "/" + nj).compareTo(key) == 0) {
                         continue;
                     }
                 }
@@ -311,8 +311,17 @@ public class ImageDisplayView extends View {
 
                 Rect blockRect = new Rect(rectLeft, rectTop, rectLeft + thisWidth, rectTop + thisHeight);
                 if (blockBitmap != null) {
+                    long begin = System.currentTimeMillis();
                     blockState.put(mImage.sampleSize + "//" + ni + "/" + nj, key);
-                    middleCanvas.drawBitmap(blockBitmap, null, blockRect, null);
+
+
+                    Matrix matrix = new Matrix();
+                    matrix.setTranslate(rectLeft,rectTop);
+middleCanvas.drawBitmap(blockBitmap,matrix,null);
+
+                   // middleCanvas.drawBitmap(blockBitmap, null, blockRect, null);
+                    long end = System.currentTimeMillis();
+                    Log.d(TAG, "run: "+key+"  time :"+(end-begin));
                 }
             }
 
@@ -359,7 +368,7 @@ public class ImageDisplayView extends View {
 
     private void displaySuitable() {
         float ratio = caculateRatio();
-        mScale=1.0f;
+        mScale = 1.0f;
         mMatrix = new Matrix();
         imageZoom(1 / ratio, new Point(0, 0));
         mState = 1;
@@ -443,13 +452,15 @@ public class ImageDisplayView extends View {
 
         boolean update2 = updatewindowSize(newMatrixScale);
         if (update1 || update2) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    block();
-                    invalidate();
-                }
-            }).start();
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    block();
+//                    invalidate();
+//                }
+//            }).start();
+
+            block();
         }
         updateLocation();
         setZoom((newMatrixScale * newSampleSize) / mMatrixScale);
@@ -494,15 +505,16 @@ public class ImageDisplayView extends View {
             Log.d(TAG, "imageMove: change");
 
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    block();
-                    invalidate();
-                }
-            }).start();
-
-
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    block();
+//                    invalidate();
+//                }
+//            }).start();
+            Log.d(TAG, "imageMove: 1111111111111111");
+            block();
+            Log.d(TAG, "imageMove: 2222222222222");
         } else {
             //Log.d(TAG, "imageMove: dxdy" + dxy[0] + "  /  " + dxy[1]);
             setTranslate(dxy[0], dxy[1]);
