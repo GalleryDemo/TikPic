@@ -213,7 +213,7 @@ public class ImageDisplayView extends View {
         }
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
-       // options.inPreferredConfig = Bitmap.Config.RGB_565;
+        // options.inPreferredConfig = Bitmap.Config.RGB_565;
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         options.inSampleSize = mImage.sampleSize;
 
@@ -347,14 +347,14 @@ public class ImageDisplayView extends View {
 
     private void displayFirst() {
         float ratio = caculateRatio();
-       // Log.d(TAG, "displayFirst: "+ratio);
+        // Log.d(TAG, "displayFirst: "+ratio);
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
         options.inPreferredConfig = Bitmap.Config.RGB_565;
 
-        if(ratio>1.0f){
-        options.inSampleSize = (int)ratio*2;}
-        else{
+        if (ratio > 1.0f) {
+            options.inSampleSize = (int) ratio * 2;
+        } else {
             options.inSampleSize = 2;
         }
         Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
@@ -364,7 +364,7 @@ public class ImageDisplayView extends View {
         Log.d(TAG, "displayFirst: " + "  time :" + (end - begin));
 
         mMatrix = new Matrix();
-        mMatrix.setScale(options.inSampleSize/ratio,options.inSampleSize/ratio);
+        mMatrix.setScale(options.inSampleSize / ratio, options.inSampleSize / ratio);
         invalidate();
     }
 
@@ -445,8 +445,9 @@ public class ImageDisplayView extends View {
 
         float dx = -nleft - mMatrixTranslate[0];
         float dy = -ntop - mMatrixTranslate[1];
-        float[] dxy = caculateBoundary(dx, dy);
-        setTranslate(dxy[0], dxy[1]);
+//        float[] dxy = caculateBoundary(dx, dy);
+//        setTranslate(dxy[0], dxy[1]);
+        imageMove(dx, dy);
         invalidate();
     }
 
@@ -459,18 +460,16 @@ public class ImageDisplayView extends View {
         //x轴偏移超过一格
         boolean isBlockChanged = false;
         for (int i = 0; i < 2; i++) {
-            if ((-mMatrixTranslate[i] + dxy[i] + mScreenSize[i]) / (mMatrixScale / mImage.sampleSize) > mDisplayWindow.size[i] * mImage.adaptBlockSize[i]) {
-                if (mDisplayWindow.posion[i] <= mImage.numBlocks[i] - mDisplayWindow.size[i]) {
-                    mDisplayWindow.posion[i]++;
-                    transXY[i] = mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
-                    isBlockChanged = true;
-                }
-            } else if (mMatrixTranslate[i] + dxy[i] > 0.0f) {
-                if (mDisplayWindow.posion[i] > 0) {
-                    mDisplayWindow.posion[i]--;
-                    transXY[i] = -mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
-                    isBlockChanged = true;
-                }
+            while (((-mMatrixTranslate[i] + dxy[i] + mScreenSize[i]) / (mMatrixScale / mImage.sampleSize) > mDisplayWindow.size[i] * mImage.adaptBlockSize[i]) &&
+                    (mDisplayWindow.posion[i] <= mImage.numBlocks[i] - mDisplayWindow.size[i])) {
+                mDisplayWindow.posion[i]++;
+                transXY[i] = mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
+                isBlockChanged = true;
+            }
+            while ((mMatrixTranslate[i] + dxy[i] > 0.0f) && (mDisplayWindow.posion[i] > 0)) {
+                mDisplayWindow.posion[i]--;
+                transXY[i] = -mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
+                isBlockChanged = true;
             }
         }
         if (isBlockChanged) {

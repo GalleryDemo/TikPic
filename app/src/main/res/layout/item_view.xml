@@ -25,9 +25,10 @@
             android:layout_gravity="bottom"/>-->
         <ImageView
             android:id="@+id/videoPlaybackIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_playback"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/video_icon_tiny"
+
             android:layout_gravity="center"
             android:visibility="gone"/>
     </androidx.cardview.widget.CardView>

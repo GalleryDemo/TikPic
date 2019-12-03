@@ -2,6 +2,8 @@ package com.demo.tikpic;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -158,6 +160,8 @@ public class MainActivity extends AppCompatActivity {
         transaction.replace(R.id.nav_host_fragment, fragment);
         if (isInStack) {
             transaction.addToBackStack(null);
+        }else{
+            //想办法清除返回栈
         }
         transaction.commit();
     }

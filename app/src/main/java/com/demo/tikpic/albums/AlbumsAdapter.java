@@ -31,7 +31,7 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
     private static final int CASE_ALBUM = 3;
     private static final String TAG = "AlbumsAdapter";
 
-    AlbumsAdapter(MainActivity activity,List<MediaAlbum> list,int coverWidth,final ClickListener clickListener){
+    AlbumsAdapter(MainActivity activity, List<MediaAlbum> list, int coverWidth, final ClickListener clickListener) {
         hostActivity = activity;
         showCaseList = list;
         albumCoverWidth = coverWidth;
@@ -42,7 +42,7 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.album_cover_view,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.album_cover_view, parent, false);
 
         return new ViewHolder(view);
     }
@@ -84,7 +84,7 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
         private boolean loading = false;
         private LinearLayout.LayoutParams mLayoutParams;
 
-        ViewHolder(View view){
+        ViewHolder(View view) {
             super(view);
             rootView = view;
             coverSize = albumCoverWidth;
@@ -92,7 +92,7 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
             albumCoverImage = itemView.findViewById(R.id.albumCoverView);
             albumName = itemView.findViewById(R.id.albumName);
             albumPictureCount = itemView.findViewById(R.id.albumPictureAmount);
-            mLayoutParams = new LinearLayout.LayoutParams(albumCoverWidth,albumCoverWidth);
+            mLayoutParams = new LinearLayout.LayoutParams(albumCoverWidth, albumCoverWidth);
             layout.setLayoutParams(mLayoutParams);
 
         }
@@ -100,14 +100,14 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
         public boolean isLoading() {
             return loading;
         }
+
         public void switchLoadState() {
             loading = !loading;
         }
     }
 
 
-
-    interface ClickListener{
+    interface ClickListener {
 
         void onAlbumViewClicked(final int albumNumber);
     }

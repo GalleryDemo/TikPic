@@ -12,8 +12,10 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.demo.tikpic.R;
 import com.demo.tikpic.viewpager.ViewPagerFragment;
 
 import java.io.IOException;
@@ -27,6 +29,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     TextureView textureView;
     private int screenWidth, screenHight, mScreenOrientation;
     private Context mContext;
+    ImageView item1;
 
     public VideoView(Context context, String path) {
         super(context);
@@ -57,6 +60,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
         addView(textureView);
 
+        anotherView();
+
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setDataSource(getContext(), Uri.parse(path));
         mMediaPlayer.setSurface(surface);
@@ -67,6 +72,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
                 //mMediaPlayer.start();
             }
         });
+
         mMediaPlayer.prepare();
         getWindewSize();
         setSize();
@@ -84,6 +90,26 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
             screenHight = metrics.widthPixels;
         }*/
     }
+
+    private void anotherView() {
+        item1 = new ImageView(mContext);
+
+        item1.setImageResource(R.drawable.video_icon_normal);//设置图片
+
+
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+               dip2px(mContext,150), dip2px(mContext,150));
+        lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        lp.addRule(RelativeLayout.CENTER_VERTICAL);
+        item1.setLayoutParams(lp);//设置布局参数
+        addView(item1);//RelativeLayout添加子View
+    }
+
+    public static int dip2px(Context context, float dpValue) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
+    }
+
 
     private void setSize() {
         int videoWidth = mMediaPlayer.getVideoWidth();
@@ -118,6 +144,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
         mMediaPlayer.start();
         mMediaPlayer.pause();
+        item1.setVisibility(VISIBLE);
     }
 
     @Override
@@ -177,8 +204,12 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private void onClick() {
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
+
+            item1.setVisibility(View.VISIBLE);
         } else {
             mMediaPlayer.start();
+
+            item1.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -197,6 +228,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
             // mMediaPlayer.pause();
             mMediaPlayer.pause();
+            item1.setVisibility(View.VISIBLE);
             mMediaPlayer.seekTo(0);
 
         }
