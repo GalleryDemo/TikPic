@@ -78,7 +78,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         }
 
         holder.rootView.setOnClickListener(v ->
-                mClickListener.onClick(index)
+                mClickListener.onClick(position)
                 );
 
 

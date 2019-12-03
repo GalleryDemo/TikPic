@@ -30,6 +30,9 @@
                 android:layout_height="30dp"
                 android:textSize="15sp"
                 android:textColor="#FFFFFF"
+                android:background="@color/cardview_dark_background_trans"
+                android:paddingLeft="10dp"
+                android:singleLine="true"
                 android:layout_gravity="bottom"/>
             <TextView
                 android:id="@+id/albumPictureAmount"
@@ -38,6 +41,9 @@
                 android:layout_height="30dp"
                 android:textSize="15sp"
                 android:textColor="#FFFFFF"
+                android:background="@color/cardview_dark_background_trans"
+                android:paddingLeft="10dp"
+                android:singleLine="true"
                 android:layout_gravity="bottom"/>
 
 
