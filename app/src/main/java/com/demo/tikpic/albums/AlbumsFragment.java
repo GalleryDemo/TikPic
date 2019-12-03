@@ -69,7 +69,9 @@ public class AlbumsFragment extends Fragment implements AlbumsAdapter.ClickListe
         Bundle bundle = new Bundle();
         bundle.putInt(ALBUM_NAME,albumNumber);
         galleryFragment.setArguments(bundle);
-        Log.d("GalleryFragment", "onCreate - BUNDLE: " + galleryFragment.getArguments());
-        getFragmentManager().beginTransaction().replace(R.id.nav_host_fragment,galleryFragment).commit();
+        hostActivity.replaceFragment(galleryFragment);
+
+
+
     }
 }

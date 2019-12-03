@@ -37,6 +37,7 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
         super.onSaveInstanceState(outState);
     }
 
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
 

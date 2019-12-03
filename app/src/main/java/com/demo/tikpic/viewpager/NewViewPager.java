@@ -17,14 +17,15 @@ import com.demo.tikpic.MainActivity;
 public class NewViewPager extends ViewPager {
     private static final String TAG = "NewViewPager";
 
-    int flag = 0;
-    static int end = 0;
+    private int flag = 0;
+    private int flagfx;
+    private float x, y, lastx, lasty;
+
 
     public NewViewPager(@NonNull Context context) {
         super(context);
         init();
     }
-
 
     public NewViewPager(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -32,6 +33,7 @@ public class NewViewPager extends ViewPager {
     }
 
     private void init() {
+
         this.setOnPageChangeListener(new OnPageChangeListener() {
             int pos = 0;
             int lastPos = -1;
@@ -47,7 +49,7 @@ public class NewViewPager extends ViewPager {
                 ViewPagerAdapter adapter = (ViewPagerAdapter) getAdapter();
                 if (lastPos != -1) {
                     adapter.resume(lastPos);
-                }else{
+                } else {
                     adapter.resume(0);
                 }
                 lastPos = pos;
@@ -55,18 +57,13 @@ public class NewViewPager extends ViewPager {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-
-
-               // Log.d(TAG, "onPageScrollStateChanged: " + state);
-
-
             }
         });
     }
 
 
-    private float x, y, lastx, lasty;
-    private int flagfx;
+    
+
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
@@ -80,8 +77,6 @@ public class NewViewPager extends ViewPager {
                 MotionEvent downEvent = MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, ev.getX(), ev.getY(), 0);
                 super.onInterceptTouchEvent(downEvent);
                 super.onTouchEvent(downEvent);
-//                super.onInterceptTouchEvent(ev);
-//                super.onTouchEvent(ev);
                 x = ev.getX();
                 y = ev.getY();
                 // Log.d(TAG, "onInterceptTouchEvent: "+(lastx-x));
@@ -112,21 +107,7 @@ public class NewViewPager extends ViewPager {
     public boolean onTouchEvent(MotionEvent ev) {
         final int action = ev.getAction() & MotionEvent.ACTION_MASK;
 
-//        if(end==1){
-//            Log.d(TAG, "onTouchEvent: endddddddddddddddddd");
-//            long time = SystemClock.uptimeMillis();//必须是 SystemClock.uptimeMillis()。
-//            MotionEvent downEvent = MotionEvent.obtain(time, time, MotionEvent.ACTION_CANCEL, ev.getX(), ev.getY(), 0);
-//            super.onTouchEvent(downEvent);
-//            super.onInterceptTouchEvent(downEvent);
-//            ViewPagerFragment.mo = 1;
-//            flag = 0;
-//           MotionEvent  downEvent2= MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, ev.getX(), ev.getY(), 0);
-//            onInterceptTouchEvent(downEvent2);
-//            end=0;
-//        }
-
         if (action == MotionEvent.ACTION_UP) {
-
             super.onTouchEvent(ev);
             super.onInterceptTouchEvent(ev);
             ViewPagerFragment.mo = 1;

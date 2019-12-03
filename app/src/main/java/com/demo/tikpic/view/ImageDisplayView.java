@@ -183,8 +183,8 @@ public class ImageDisplayView extends View {
         if (mDisplayWindow.lastSize[0] == mDisplayWindow.size[0] && mDisplayWindow.lastSize[1] == mDisplayWindow.size[1]) {
             return false;
         } else {
-            Log.d(TAG, "setSize: displaysize   " + mDisplayWindow.size[0] + "   /   " + mDisplayWindow.size[1]);
-            Log.d(TAG, "updatewindowSize: adaptBlockSize" + mImage.adaptBlockSize[0]);
+            //Log.d(TAG, "setSize: displaysize   " + mDisplayWindow.size[0] + "   /   " + mDisplayWindow.size[1]);
+            //Log.d(TAG, "updatewindowSize: adaptBlockSize" + mImage.adaptBlockSize[0]);
             mDisplayWindow.bitmap = Bitmap.createBitmap(mImage.basicBlockSize[0] * mDisplayWindow.size[0], mImage.basicBlockSize[1] * mDisplayWindow.size[1], Bitmap.Config.RGB_565);
 
             blockState.clear();
@@ -196,31 +196,14 @@ public class ImageDisplayView extends View {
 
     public void setUri(Uri uri) {
         mImage = new ImageResoutce(uri);
-        Log.d(TAG, "setUri: " + uri.getPath());
+        //Log.d(TAG, "setUri: " + uri.getPath());
         mImage.setBasicBlockSize(1024);
         mDisplayWindow = new DisplayWindow();
         mState = 1;
-
-        Log.d(TAG, "setUri: " + mImage.imageSize[0] + "    ///   " + mImage.imageSize[1]);
+        //displayFirst();
+        //Log.d(TAG, "setUri: " + mImage.imageSize[0] + "    ///   " + mImage.imageSize[1]);
         displayEffect();
     }
-
-//    @Override
-//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//        int specMode = View.MeasureSpec.getMode(widthMeasureSpec);
-//        //获取测量大小
-//        int specSizeWidth = MeasureSpec.getSize(widthMeasureSpec);
-//        int specMode2 = View.MeasureSpec.getMode(heightMeasureSpec);
-//        //获取测量大小
-//        int specSizeHeight = MeasureSpec.getSize(heightMeasureSpec);
-//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        if (mScreenSize[0] != specSizeWidth || mScreenSize[1] != specSizeHeight) {
-//            mScreenSize[0] = specSizeWidth;
-//            mScreenSize[1] = specSizeHeight;
-//            displayEffect();
-//        }
-//        Log.d(TAG, "onMeasure: "+ mScreenSize[0] + " / " + mScreenSize[1]);
-//    }
 
     Map<String, String> blockState = new HashMap<String, String>();
 
@@ -230,8 +213,8 @@ public class ImageDisplayView extends View {
         }
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
-        options.inPreferredConfig = Bitmap.Config.RGB_565;
-        //options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+       // options.inPreferredConfig = Bitmap.Config.RGB_565;
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         options.inSampleSize = mImage.sampleSize;
 
         Canvas middleCanvas = new Canvas(mDisplayWindow.bitmap);
@@ -296,15 +279,15 @@ public class ImageDisplayView extends View {
                     //2表示在缓存中
                     blockState.remove(key);
                 }
-                final int rectLeft = (ni * mImage.adaptBlockSize[0])/mImage.sampleSize;
-               final  int rectTop = nj * mImage.adaptBlockSize[1]/mImage.sampleSize;
+                final int rectLeft = (ni * mImage.adaptBlockSize[0]) / mImage.sampleSize;
+                final int rectTop = nj * mImage.adaptBlockSize[1] / mImage.sampleSize;
                 if (blockBitmap != null) {
                     blockState.put(mImage.sampleSize + "//" + ni + "/" + nj, key);
                     long begin = System.currentTimeMillis();
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            middleCanvas.drawBitmap(blockBitmap,rectLeft,rectTop,null);
+                            middleCanvas.drawBitmap(blockBitmap, rectLeft, rectTop, null);
                             invalidate();
                         }
                     }).start();
@@ -331,13 +314,12 @@ public class ImageDisplayView extends View {
     protected void onDraw(Canvas canvas) {
         //canvas.drawARGB(255,0,0,0);
 
-            canvas.drawColor(mColor);
-            updateLocation();
-            long begin = System.currentTimeMillis();
-            canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
-            long end = System.currentTimeMillis();
-            //Log.d(TAG, "ondrawwwwwwwww"+"  time :"+(end-begin));
-
+        canvas.drawColor(mColor);
+        updateLocation();
+        long begin = System.currentTimeMillis();
+        canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
+        long end = System.currentTimeMillis();
+        //Log.d(TAG, "ondrawwwwwwwww"+"  time :"+(end-begin));
 
 
     }
@@ -365,14 +347,24 @@ public class ImageDisplayView extends View {
 
     private void displayFirst() {
         float ratio = caculateRatio();
+       // Log.d(TAG, "displayFirst: "+ratio);
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
         options.inPreferredConfig = Bitmap.Config.RGB_565;
-        //options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        options.inSampleSize = 8;
+
+        if(ratio>1.0f){
+        options.inSampleSize = (int)ratio*2;}
+        else{
+            options.inSampleSize = 2;
+        }
         Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
+        long begin = System.currentTimeMillis();
         mDisplayWindow.bitmap = mImage.resource.decodeRegion(blockRect, options);
+        long end = System.currentTimeMillis();
+        Log.d(TAG, "displayFirst: " + "  time :" + (end - begin));
+
         mMatrix = new Matrix();
+        mMatrix.setScale(options.inSampleSize/ratio,options.inSampleSize/ratio);
         invalidate();
     }
 
@@ -486,11 +478,10 @@ public class ImageDisplayView extends View {
             Log.d(TAG, "imageMove: change");
 
 
-
             long begin = System.currentTimeMillis();
             block();
             long end = System.currentTimeMillis();
-            Log.d(TAG, "imageMoveimageMoveimageMove: "  + "  time :" + (end - begin));
+            Log.d(TAG, "imageMoveimageMoveimageMove: " + "  time :" + (end - begin));
 
         } else {
             //Log.d(TAG, "imageMove: dxdy" + dxy[0] + "  /  " + dxy[1]);

@@ -195,9 +195,9 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     public void reset() {
         if (mMediaPlayer.isPlaying()) {
 
-               // mMediaPlayer.pause();
-                mMediaPlayer.pause();
-                mMediaPlayer.seekTo(0);
+            // mMediaPlayer.pause();
+            mMediaPlayer.pause();
+            mMediaPlayer.seekTo(0);
 
         }
     }
