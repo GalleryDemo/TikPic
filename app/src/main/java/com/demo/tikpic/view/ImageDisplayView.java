@@ -53,6 +53,7 @@ public class ImageDisplayView extends View {
     private int mScaleLimit = 1;
     private ExecutorService mCachedThreadPool = Executors.newCachedThreadPool();
 
+
     //手势
     private InputDetector mInputDetector;
     private InputDetector.OnInputListener mListener = new InputDetector.OnInputListener() {
@@ -75,6 +76,7 @@ public class ImageDisplayView extends View {
                     imageZoom(((float) newDist + num_zoomSensitivity) / ((float) mInputDetector.lastDist + num_zoomSensitivity), mInputDetector.middle);
                     imageMove(mInputDetector.dx * num_moveSpeed, mInputDetector.dy * num_moveSpeed);
                     mInputDetector.lastDist = newDist;
+                    mStateMoveZoom = 1;
                     break;
                 case 6:
 
@@ -203,22 +205,22 @@ public class ImageDisplayView extends View {
         displayEffect();
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+//    @Override
+//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 //        int specMode = View.MeasureSpec.getMode(widthMeasureSpec);
-        //获取测量大小
-        int specSizeWidth = MeasureSpec.getSize(widthMeasureSpec);
+//        //获取测量大小
+//        int specSizeWidth = MeasureSpec.getSize(widthMeasureSpec);
 //        int specMode2 = View.MeasureSpec.getMode(heightMeasureSpec);
-        //获取测量大小
-        int specSizeHeight = MeasureSpec.getSize(heightMeasureSpec);
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        if (mScreenSize[0] != specSizeWidth || mScreenSize[1] != specSizeHeight) {
-            mScreenSize[0] = specSizeWidth;
-            mScreenSize[1] = specSizeHeight;
-            displayEffect();
-        }
-
-    }
+//        //获取测量大小
+//        int specSizeHeight = MeasureSpec.getSize(heightMeasureSpec);
+//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        if (mScreenSize[0] != specSizeWidth || mScreenSize[1] != specSizeHeight) {
+//            mScreenSize[0] = specSizeWidth;
+//            mScreenSize[1] = specSizeHeight;
+//            displayEffect();
+//        }
+//        Log.d(TAG, "onMeasure: "+ mScreenSize[0] + " / " + mScreenSize[1]);
+//    }
 
     Map<String, String> blockState = new HashMap<String, String>();
 
@@ -303,10 +305,10 @@ public class ImageDisplayView extends View {
                         @Override
                         public void run() {
                             middleCanvas.drawBitmap(blockBitmap,rectLeft,rectTop,null);
+                            invalidate();
                         }
                     }).start();
                     long end = System.currentTimeMillis();
-//                    invalidate();
                     Log.d(TAG, "run: " + key + "  time :" + (end - begin));
                 }
             }
@@ -321,19 +323,20 @@ public class ImageDisplayView extends View {
         }
         mScreenSize[0] = metrics.widthPixels;
         mScreenSize[1] = metrics.heightPixels;
-        //Log.d(TAG, "getWindowInfo: " + mScreenSize[0] + " / " + mScreenSize[1]);
+        Log.d(TAG, "getWindowInfo: " + mScreenSize[0] + " / " + mScreenSize[1]);
 
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         //canvas.drawARGB(255,0,0,0);
-        canvas.drawColor(mColor);
-        updateLocation();
-        long begin = System.currentTimeMillis();
-        canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
-        long end = System.currentTimeMillis();
-        //Log.d(TAG, "ondrawwwwwwwww"+"  time :"+(end-begin));
+
+            canvas.drawColor(mColor);
+            updateLocation();
+            long begin = System.currentTimeMillis();
+            canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
+            long end = System.currentTimeMillis();
+            //Log.d(TAG, "ondrawwwwwwwww"+"  time :"+(end-begin));
 
 
 

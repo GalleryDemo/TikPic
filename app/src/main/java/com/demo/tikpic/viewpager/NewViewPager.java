@@ -76,6 +76,9 @@ public class NewViewPager extends ViewPager {
         });
     }
 
+
+    private float x,y,lastx,lasty;
+    private int flagfx;
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = ev.getAction() & MotionEvent.ACTION_MASK;
@@ -87,12 +90,31 @@ public class NewViewPager extends ViewPager {
                 long time = SystemClock.uptimeMillis();//必须是 SystemClock.uptimeMillis()。
                 MotionEvent downEvent = MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, ev.getX(), ev.getY(), 0);
                 super.onInterceptTouchEvent(downEvent);
-                super.onInterceptTouchEvent(ev);
-                return true;
-            } else {
-                super.onInterceptTouchEvent(ev);
-                //return true;
+                super.onTouchEvent(downEvent);
+//                super.onInterceptTouchEvent(ev);
+//                super.onTouchEvent(ev);
+                x=ev.getX();
+                y=ev.getY();
+                Log.d(TAG, "onInterceptTouchEvent: "+(lastx-x));
+                if(lastx-x>0){
+                    flagfx=1;
+                }else{
+                    flagfx=2;
+                }
             }
+        }
+        lastx=ev.getX();
+        lasty=ev.getY();
+        if((flagfx==1&&lastx>x)||(flagfx==2&&lastx<x)) {
+            long time = SystemClock.uptimeMillis();
+            MotionEvent downEvent = MotionEvent.obtain(time, time, MotionEvent.ACTION_UP, ev.getX(), ev.getY(), 0);
+
+            onTouchEvent(downEvent);
+        }
+
+        if(flag==1){
+            //super.onInterceptTouchEvent(ev);
+            onTouchEvent(ev);
         }
         return false;
     }
@@ -121,6 +143,7 @@ public class NewViewPager extends ViewPager {
             ViewPagerFragment.mo = 1;
 
             flag = 0;
+            flagfx=0;
         }
         return super.onTouchEvent(ev);
     }

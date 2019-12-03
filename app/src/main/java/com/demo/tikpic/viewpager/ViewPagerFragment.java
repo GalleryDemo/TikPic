@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.demo.tikpic.DataManager;
 import com.demo.tikpic.MainActivity;
+import com.demo.tikpic.R;
 import com.demo.tikpic.itemClass.MediaFile;
 
 import java.util.List;
@@ -57,6 +58,7 @@ public class ViewPagerFragment extends Fragment {
             return null;
         } else {
             NewViewPager view = new NewViewPager(mContext);
+            view.setPageMargin((int)getResources().getDimensionPixelOffset(R.dimen.page_margen));
             List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
             ViewPagerAdapter mAdapter = new ViewPagerAdapter(mContext, list);
             view.setAdapter(mAdapter);
