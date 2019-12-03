@@ -70,7 +70,7 @@ public class ViewPagerAdapter extends PagerAdapter {
         MediaFile item = mList.get(position);
 
         if (item.getType() == 1) {
-            ImageDisplayView view = (ImageDisplayView)mViewMap.get(position);
+            ImageDisplayView view = (ImageDisplayView) mViewMap.get(position);
             view.destroy();
             container.removeView(view);
             mViewMap.remove(view);
@@ -79,30 +79,18 @@ public class ViewPagerAdapter extends PagerAdapter {
         mViewMap.remove(position);
     }
 
-    public void resume(int position){
-        if(position!=0){
-            if(mList.get(position-1).getType()==1){
-                ImageDisplayView view = (ImageDisplayView) mViewMap.get(position-1);
-                if(view!=null){
-                    view.reset();
-                }
+    public void resume(int position) {
+        Log.d(TAG, "resume: "+position);
+        if (mList.get(position).getType() == 1) {
+            ImageDisplayView view = (ImageDisplayView) mViewMap.get(position);
+            if (view != null) {
+                view.reset();
             }
-
-        }
-        if(position!=mList.size()){
-            if(mList.get(position+1).getType()==1){
-                ImageDisplayView view = (ImageDisplayView) mViewMap.get(position+1);
-                if(view!=null){
-                    view.reset();
-                }
+        } else {
+            VideoView view = (VideoView) mViewMap.get(position);
+            if (view != null) {
+                view.reset();
             }
         }
-        Log.d("zzzzzzzzzzzzz", "resume: "+mList.get(position).getType());
-//        if(mList.get(position).getType()==1){
-//            ImageDisplayView view = (ImageDisplayView) mViewMap.get(position+1);
-//            if(view!=null){
-//
-//            }
-//        }
     }
 }

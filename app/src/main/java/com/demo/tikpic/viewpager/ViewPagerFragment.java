@@ -58,6 +58,7 @@ public class ViewPagerFragment extends Fragment {
             return null;
         } else {
             NewViewPager view = new NewViewPager(mContext);
+            view.setBackgroundColor(getResources().getColor(R.color.black));
             view.setPageMargin((int)getResources().getDimensionPixelOffset(R.dimen.page_margen));
             List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
             ViewPagerAdapter mAdapter = new ViewPagerAdapter(mContext, list);
@@ -82,4 +83,6 @@ public class ViewPagerFragment extends Fragment {
             mActivity.getSupportActionBar().show();
         }
     }
+
+
 }

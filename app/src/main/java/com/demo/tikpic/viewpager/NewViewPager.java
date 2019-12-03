@@ -34,51 +34,40 @@ public class NewViewPager extends ViewPager {
     private void init() {
         this.setOnPageChangeListener(new OnPageChangeListener() {
             int pos = 0;
-            int beginScroll = 0;
+            int lastPos = -1;
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-//                Log.d(TAG, "onPageScrolled: "+position+"/"+positionOffset+"/"+positionOffsetPixels);
-//                if(positionOffset<0.1f){
-//                    beginScroll=1;
-//                }else if(positionOffset>0.9f){
-//                    beginScroll=2;
-//                }
-//                if( beginScroll==1&&positionOffset>0.2f){
-//                    beginScroll=10;
-//                }else if( beginScroll==2&&positionOffset<0.8f){
-//                    beginScroll=20;
-//                }
-//                if(beginScroll==10&&positionOffset<0.001f){
-//                    NewViewPager.end=1;
-//                    beginScroll=0;
-//                }
-//                if(beginScroll==20&&positionOffset>0.99f){
-//                    NewViewPager.end=1;
-//                    beginScroll=0;
-//                }
             }
 
             @Override
             public void onPageSelected(int position) {
+                //Log.d(TAG, "onPageSelected: " + position+"  / " +lastPos);
                 pos = position;
-
+                ViewPagerAdapter adapter = (ViewPagerAdapter) getAdapter();
+                if (lastPos != -1) {
+                    adapter.resume(lastPos);
+                }else{
+                    adapter.resume(0);
+                }
+                lastPos = pos;
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                if (state == 2) {
-                    ViewPagerAdapter adapter = (ViewPagerAdapter) getAdapter();
-                    adapter.resume(pos);
-                }
+
+
+               // Log.d(TAG, "onPageScrollStateChanged: " + state);
+
 
             }
         });
     }
 
 
-    private float x,y,lastx,lasty;
+    private float x, y, lastx, lasty;
     private int flagfx;
+
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = ev.getAction() & MotionEvent.ACTION_MASK;
@@ -93,26 +82,26 @@ public class NewViewPager extends ViewPager {
                 super.onTouchEvent(downEvent);
 //                super.onInterceptTouchEvent(ev);
 //                super.onTouchEvent(ev);
-                x=ev.getX();
-                y=ev.getY();
-                Log.d(TAG, "onInterceptTouchEvent: "+(lastx-x));
-                if(lastx-x>0){
-                    flagfx=1;
-                }else{
-                    flagfx=2;
+                x = ev.getX();
+                y = ev.getY();
+                // Log.d(TAG, "onInterceptTouchEvent: "+(lastx-x));
+                if (lastx - x > 0) {
+                    flagfx = 1;
+                } else {
+                    flagfx = 2;
                 }
             }
         }
-        lastx=ev.getX();
-        lasty=ev.getY();
-        if((flagfx==1&&lastx>x)||(flagfx==2&&lastx<x)) {
+        lastx = ev.getX();
+        lasty = ev.getY();
+        if ((flagfx == 1 && lastx > x) || (flagfx == 2 && lastx < x)) {
             long time = SystemClock.uptimeMillis();
             MotionEvent downEvent = MotionEvent.obtain(time, time, MotionEvent.ACTION_UP, ev.getX(), ev.getY(), 0);
 
             onTouchEvent(downEvent);
         }
 
-        if(flag==1){
+        if (flag == 1) {
             //super.onInterceptTouchEvent(ev);
             onTouchEvent(ev);
         }
@@ -143,7 +132,7 @@ public class NewViewPager extends ViewPager {
             ViewPagerFragment.mo = 1;
 
             flag = 0;
-            flagfx=0;
+            flagfx = 0;
         }
         return super.onTouchEvent(ev);
     }

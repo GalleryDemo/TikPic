@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -29,7 +30,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
     public VideoView(Context context, String path) {
         super(context);
-        mContext=context;
+        mContext = context;
         this.path = path;
         try {
             init();
@@ -48,17 +49,12 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
     private void init() throws IOException {
 
-        ViewPagerFragment.mo=1;
+        mInputDetector = new InputDetector(mListener);
+
 
         textureView = new TextureView(getContext());
         textureView.setSurfaceTextureListener(this);
-        textureView.setOnClickListener(new OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                mMediaPlayer.start();
-            }
-        });
         addView(textureView);
 
         mMediaPlayer = new MediaPlayer();
@@ -75,7 +71,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         getWindewSize();
         setSize();
     }
-     private void getWindewSize() {
+
+    private void getWindewSize() {
         WindowManager mWindowManager = (WindowManager) mContext.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics metrics = new DisplayMetrics();
         mWindowManager.getDefaultDisplay().getMetrics(metrics);
@@ -88,7 +85,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         }*/
     }
 
-    private void setSize(){
+    private void setSize() {
         int videoWidth = mMediaPlayer.getVideoWidth();
         int videoHeight = mMediaPlayer.getVideoHeight();
 
@@ -114,6 +111,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         layoutParams.setMargins((screenWidth - w) / 2, (screenHight - h) / 2, 0, 0);
         textureView.setLayoutParams(layoutParams);
     }
+
     private void play() {
 
         mMediaPlayer.setSurface(surface);
@@ -121,7 +119,6 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         mMediaPlayer.start();
         mMediaPlayer.pause();
     }
-
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceT, int width, int height) {
@@ -146,5 +143,62 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
+    }
+
+
+    //手势
+    private InputDetector mInputDetector;
+    private InputDetector.OnInputListener mListener = new InputDetector.OnInputListener() {
+        @Override
+        public boolean action(int n) {
+            //Log.d(TAG, "action: " + n);
+            int num_zoomSensitivity = 0;
+            float num_moveSpeed = 1.0f;
+
+            switch (n) {
+                case 4:
+                    onClick();
+                    break;
+                case 3:
+                    //move
+                    ViewPagerFragment.mo = 0;
+                    break;
+                case 2:
+                    //zoom
+                    break;
+
+                default:
+                    break;
+            }
+            return true;
+        }
+    };
+
+    private void onClick() {
+        if (mMediaPlayer.isPlaying()) {
+            mMediaPlayer.pause();
+        } else {
+            mMediaPlayer.start();
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return mInputDetector.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return onTouchEvent(ev);
+    }
+
+    public void reset() {
+        if (mMediaPlayer.isPlaying()) {
+
+               // mMediaPlayer.pause();
+                mMediaPlayer.pause();
+                mMediaPlayer.seekTo(0);
+
+        }
     }
 }
