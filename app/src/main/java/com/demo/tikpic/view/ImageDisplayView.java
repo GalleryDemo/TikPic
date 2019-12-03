@@ -288,47 +288,29 @@ public class ImageDisplayView extends View {
                                 }
                             }
                         });
-
-//                    int rectLeft = ii * mImage.adaptBlockSize[0];
-//                    int rectTop = jj * mImage.adaptBlockSize[1];
-//                    Rect blockRect = new Rect(rectLeft, rectTop, rectLeft + thisWidth, rectTop + thisHeight);
-//                    blockBitmap = mImage.resource.decodeRegion(blockRect, options);
-//                    mLoader.addBitmap(key, blockBitmap);
                     }
 
                 } else {
                     //2表示在缓存中
                     blockState.remove(key);
                 }
-                int thisWidth = (i == mImage.numBlocks[0]) ? mImage.edgeBlockLength[0] : mImage.adaptBlockSize[0];
-                int thisHeight = (j == mImage.numBlocks[1]) ? mImage.edgeBlockLength[1] : mImage.adaptBlockSize[1];
-                int rectLeft = ni * mImage.adaptBlockSize[0];
-                int rectTop = nj * mImage.adaptBlockSize[1];
-                thisWidth /= mImage.sampleSize;
-                thisHeight /= mImage.sampleSize;
-                rectLeft /= mImage.sampleSize;
-                rectTop /= mImage.sampleSize;
-
-                Rect blockRect = new Rect(rectLeft, rectTop, rectLeft + thisWidth, rectTop + thisHeight);
+                final int rectLeft = (ni * mImage.adaptBlockSize[0])/mImage.sampleSize;
+               final  int rectTop = nj * mImage.adaptBlockSize[1]/mImage.sampleSize;
                 if (blockBitmap != null) {
-                    long begin = System.currentTimeMillis();
                     blockState.put(mImage.sampleSize + "//" + ni + "/" + nj, key);
-
-
-                    Matrix matrix = new Matrix();
-                    matrix.setTranslate(rectLeft,rectTop);
-middleCanvas.drawBitmap(blockBitmap,matrix,null);
-
-                   // middleCanvas.drawBitmap(blockBitmap, null, blockRect, null);
+                    long begin = System.currentTimeMillis();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            middleCanvas.drawBitmap(blockBitmap,rectLeft,rectTop,null);
+                        }
+                    }).start();
                     long end = System.currentTimeMillis();
-                    Log.d(TAG, "run: "+key+"  time :"+(end-begin));
+//                    invalidate();
+                    Log.d(TAG, "run: " + key + "  time :" + (end - begin));
                 }
             }
-
-
         }
-
-
     }
 
     private void getWindowInfo() {
@@ -348,7 +330,11 @@ middleCanvas.drawBitmap(blockBitmap,matrix,null);
         //canvas.drawARGB(255,0,0,0);
         canvas.drawColor(mColor);
         updateLocation();
+        long begin = System.currentTimeMillis();
         canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
+        long end = System.currentTimeMillis();
+        //Log.d(TAG, "ondrawwwwwwwww"+"  time :"+(end-begin));
+
 
 
     }
@@ -425,15 +411,15 @@ middleCanvas.drawBitmap(blockBitmap,matrix,null);
         float newMatrixScale = mScale * x;
 
         //问题代码
-//        if(mScaleLimit==0){
+//        if(mScaleLimit==1){
 //            if(mScale>1.0f)
 //            {
 //                mScale=1.0f;
 //            }else if(mScale==1.0f){
 //                return;
-//            }else if(mScale<caculateRatio()){
+//            }else if(mScale<caculateRatio()-0.1){
 //                mScale=caculateRatio();
-//            }else if(mScale==caculateRatio()){
+//            }else if(mScale==caculateRatio()-0.1){
 //                return;
 //            }
 //        }
@@ -452,14 +438,6 @@ middleCanvas.drawBitmap(blockBitmap,matrix,null);
 
         boolean update2 = updatewindowSize(newMatrixScale);
         if (update1 || update2) {
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    block();
-//                    invalidate();
-//                }
-//            }).start();
-
             block();
         }
         updateLocation();
@@ -505,16 +483,12 @@ middleCanvas.drawBitmap(blockBitmap,matrix,null);
             Log.d(TAG, "imageMove: change");
 
 
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    block();
-//                    invalidate();
-//                }
-//            }).start();
-            Log.d(TAG, "imageMove: 1111111111111111");
+
+            long begin = System.currentTimeMillis();
             block();
-            Log.d(TAG, "imageMove: 2222222222222");
+            long end = System.currentTimeMillis();
+            Log.d(TAG, "imageMoveimageMoveimageMove: "  + "  time :" + (end - begin));
+
         } else {
             //Log.d(TAG, "imageMove: dxdy" + dxy[0] + "  /  " + dxy[1]);
             setTranslate(dxy[0], dxy[1]);
