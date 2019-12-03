@@ -29,6 +29,8 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
     private static final String ALBUM_NAME = "albumName";
     private MediaAlbum currentAlbum;
     private MainActivity hostActivity;
+    int albumNumber;
+    private boolean isFromAlbumView;
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         Log.d(TAG, "onSaveInstanceState: " + outState);
@@ -44,10 +46,14 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
         super.onCreate(savedInstanceState);
         MainActivity hostActivity = (MainActivity) getActivity();
         if(arguments != null){
-            int albumNumber = arguments.getInt(ALBUM_NAME,0);
+            isFromAlbumView = true;
+            albumNumber = arguments.getInt(ALBUM_NAME,0);
             Log.d(TAG, "onCreate - BUNDLE: " + albumNumber);
             currentAlbum = DataManager.getInstance(hostActivity).getShowcaseOrAlbumOrIndex(0).get(albumNumber);
+            Log.d(TAG, "onCreate - ALBUM SIZE: " + currentAlbum.getAlbumSize());
         }else{
+            isFromAlbumView = false;
+            Log.d(TAG, "onCreate - BUNDLE: NULL");
             currentAlbum = DataManager.getInstance(hostActivity).getShowcaseOrAlbumOrIndex(1).get(0);
         }
 
@@ -78,6 +84,12 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
 //        Log.d("DEBUGALL", "onClick - dataAdapter - getAdapterPosition:  "+ position);
 //        hostActivity.startActivity(intent);
 
-        hostActivity.photoPage(1,0,position);
+        if(isFromAlbumView){
+            hostActivity.photoPage(0,albumNumber,position);
+            Log.d(TAG, "onClick - albumNumber: " + albumNumber);
+        }else{
+            hostActivity.photoPage(1,0,position);
+        }
+
     }
 }

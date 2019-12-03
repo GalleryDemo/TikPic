@@ -73,8 +73,8 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         }
         else {
             holder.mVideoIconImageView.setVisibility(View.GONE);
-           // DataManager.getInstance(hostActivity).loadBitmap(index, holder, TYPE_IMAGE);
-            Glide.with(holder.rootView).load(DataManager.getInstance().getShowcaseOrAlbumOrIndex(1,0,position).getPath()).into(holder.mImageView);
+            DataManager.getInstance(hostActivity).loadBitmap(index, holder, TYPE_IMAGE);
+            //Glide.with(holder.rootView).load(DataManager.getInstance().getShowcaseOrAlbumOrIndex(1,0,position).getPath()).into(holder.mImageView);
         }
 
         holder.rootView.setOnClickListener(v ->

@@ -24,7 +24,7 @@ import com.demo.tikpic.gallery.GalleryFragment;
 public class AlbumsFragment extends Fragment implements AlbumsAdapter.ClickListener{
     private static final String TAG = "AlbumsFragment";
     private static final String ALBUM_NAME = "albumName";
-
+    MainActivity hostActivity;
     private int mScreenWidth;
 
     @Override
@@ -35,7 +35,7 @@ public class AlbumsFragment extends Fragment implements AlbumsAdapter.ClickListe
 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        MainActivity hostActivity = (MainActivity) getActivity();
+        hostActivity = (MainActivity) getActivity();
         View root = inflater.inflate(R.layout.fragment_gallery, container, false);
 
         WindowManager mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
@@ -70,7 +70,6 @@ public class AlbumsFragment extends Fragment implements AlbumsAdapter.ClickListe
         bundle.putInt(ALBUM_NAME,albumNumber);
         galleryFragment.setArguments(bundle);
         Log.d("GalleryFragment", "onCreate - BUNDLE: " + galleryFragment.getArguments());
-
         getFragmentManager().beginTransaction().replace(R.id.nav_host_fragment,galleryFragment).commit();
     }
 }
