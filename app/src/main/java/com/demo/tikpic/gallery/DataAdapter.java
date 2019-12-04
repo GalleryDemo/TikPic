@@ -33,7 +33,7 @@ import com.demo.tikpic.itemClass.MediaAlbum;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
-    private static final String TAG = "MYSYNC";
+    private static final String TAG = "GalleryFragment";
 
     private static final int TYPE_IMAGE = 0;
     private static final int TYPE_VIDEO = 1;
@@ -41,11 +41,13 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     private MainActivity hostActivity;
     private MediaAlbum currentAlbum;
     private ClickListener mClickListener;
+    private int thumbNailWidth;
 
-    DataAdapter(MainActivity activity,MediaAlbum album, ClickListener listener) {
+    DataAdapter(MainActivity activity,MediaAlbum album, ClickListener listener,int width) {
         hostActivity = activity;
         currentAlbum = album;
         mClickListener = listener;
+        thumbNailWidth = width;
     }
 
     @NonNull
@@ -64,16 +66,17 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                 hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
 
         int index = currentAlbum.get(position);
-
+        Log.d(TAG, "onBindViewHolder - path : " + DataManager.getInstance(hostActivity).getAllItemList().get(index).getPath());
+        Log.d(TAG, "onBindViewHolder - PathInAlbum : "+currentAlbum.get(position));
         // load media thumbnail
         if(DataManager.getInstance(hostActivity).getAllItemList().get(index).getType() == 3) {
             holder.mVideoIconImageView.setVisibility(View.VISIBLE);
-            Log.d(TAG, "onBindViewHolder - holder  : " + holder.getAdapterPosition());
-            DataManager.getInstance(hostActivity).loadBitmap(index, holder, TYPE_VIDEO);
+
+            DataManager.getInstance(hostActivity).loadBitmap(index, holder, thumbNailWidth);
         }
         else {
             holder.mVideoIconImageView.setVisibility(View.GONE);
-            DataManager.getInstance(hostActivity).loadBitmap(index, holder, TYPE_IMAGE);
+            DataManager.getInstance(hostActivity).loadBitmap(index, holder, thumbNailWidth);
             //Glide.with(holder.rootView).load(DataManager.getInstance().getShowcaseOrAlbumOrIndex(1,0,position).getPath()).into(holder.mImageView);
         }
 
@@ -102,12 +105,13 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     // ==================== ViewHolder ==================== //
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         final View rootView;
         public ImageView mImageView;
         private ImageView mVideoIconImageView;
         private boolean loading = false;
+        private int position;
 
         public boolean isLoading() {
             return loading;
@@ -121,7 +125,9 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             rootView = view;
             mImageView = itemView.findViewById(R.id.itemImageView);
             mVideoIconImageView = itemView.findViewById(R.id.videoPlaybackIcon);
+
         }
+
 
     }
 

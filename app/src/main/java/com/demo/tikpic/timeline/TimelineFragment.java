@@ -1,12 +1,15 @@
 package com.demo.tikpic.timeline;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,6 +31,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
     private static final String TAG = "TimelineFragment";
     private MainActivity hostActivity;
     private MyAdapter sectionedAdapter;
+    private int mScreenWidth;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,6 +47,13 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
         hostActivity = (MainActivity) getActivity();
 
         final View view = inflater.inflate(R.layout.fragment_timeline, container, false);
+        WindowManager mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics metrics = new DisplayMetrics();
+        mWindowManager.getDefaultDisplay().getMetrics(metrics);
+
+        mScreenWidth = metrics.widthPixels;
+
+        int itemWidth = mScreenWidth/4;
 
         sectionedAdapter = new MyAdapter();
 
@@ -54,7 +65,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
             sectionedAdapter.addSection(
                     new PhotoSection(albumName,
                             dataManager.getPhotoListInAlbum(albumName),
-                            hostActivity, this));
+                            hostActivity, this,itemWidth));
         }
 
         final RecyclerView recyclerView = view.findViewById(R.id.recyclerview);

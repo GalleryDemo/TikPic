@@ -6,18 +6,29 @@ public class MediaFile {
     private String date;
     private int type;
     private String thumbnailPath;
+    private int id;
 
 
-    public MediaFile(String path, String name, int type) {
-        this(name,path,type,null);
+
+    protected MediaFile(String path, String name, int type){
+        this(path,name,type,null,-1);
     }
 
-    public MediaFile(String path, String name, int type, String thumbnailPath){
+    public MediaFile(String path, String name, int type,int id) {
+        this(name,path,type,null,id);
+    }
+
+    public MediaFile(String path, String name, int type, String thumbnailPath, int id){
 
         this.path = path;
         this.name = name;
         this.type = type;
         this.thumbnailPath = thumbnailPath;
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getPath() {

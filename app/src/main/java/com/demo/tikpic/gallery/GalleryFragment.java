@@ -1,12 +1,15 @@
 package com.demo.tikpic.gallery;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,8 +32,10 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
     private static final String ALBUM_NAME = "albumName";
     private MediaAlbum currentAlbum;
     private MainActivity hostActivity;
-    int albumNumber;
+    private int albumNumber;
     private boolean isFromAlbumView;
+    private int mScreenWidth;
+
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         Log.d(TAG, "onSaveInstanceState: " + outState);
@@ -65,11 +70,28 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
 
         hostActivity = (MainActivity) getActivity();
         View root = inflater.inflate(R.layout.fragment_gallery, container, false);
+        WindowManager mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics metrics = new DisplayMetrics();
+        mWindowManager.getDefaultDisplay().getMetrics(metrics);
 
-        DataAdapter dataAdapter = new DataAdapter(hostActivity, currentAlbum,this);
+        mScreenWidth = metrics.widthPixels;
+
+        int itemWidth = mScreenWidth/4;
+
+
+        DataAdapter dataAdapter = new DataAdapter(hostActivity, currentAlbum,this,itemWidth);
 
         RecyclerView recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setAdapter(dataAdapter);
+
+        //recyclerView.setItemViewCacheSize(30);
+        recyclerView.hasFixedSize();
+        recyclerView.setNestedScrollingEnabled(false);
+
+//        recyclerView.setItemViewCacheSize(20);
+//        recyclerView.setDrawingCacheEnabled(true);
+//        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 3);
         recyclerView.setLayoutManager(gridLayoutManager);
@@ -80,16 +102,12 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
     @Override
     public void onClick(int position) {
 
-//        Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
-//        intent.putExtra("position", position);
-//        Log.d("DEBUGALL", "onClick - dataAdapter - getAdapterPosition:  "+ position);
-//        hostActivity.startActivity(intent);
-
         if(isFromAlbumView){
             hostActivity.photoPage(0,albumNumber,position);
             Log.d(TAG, "onClick - albumNumber: " + albumNumber);
         }else{
             hostActivity.photoPage(1,0,position);
+            Log.d(TAG, "onClick - albumNumber: " + position);
         }
 
     }

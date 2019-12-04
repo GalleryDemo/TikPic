@@ -75,11 +75,12 @@ public class DataManager {
 
 
     // Disk Cache
-    private DiskLruCache diskLruCache;
-    private final Object diskCacheLock = new Object();
-    private boolean diskCacheStarting = true;
+    private static DiskLruCache diskLruCache;
+    private static final Object diskCacheLock = new Object();
+    private static boolean diskCacheStarting = true;
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 100; // 100MB
     private static final String DISK_CACHE_SUBDIR = "thumbnails";
+    //private static final String DISK_CACHE_SUBDIR_ALBUM = "albumThumbnails";
 
     private ExecutorService cachedThreadPool;
 
@@ -135,7 +136,7 @@ public class DataManager {
         return sDataManager;
     }
 
-    public boolean scanMediaFiles() {
+    private boolean scanMediaFiles() {
         allItemList.clear();
         currentShowCase.clear();
         imagePaths.clear();
@@ -175,43 +176,67 @@ public class DataManager {
             //loop the cursor to save media items.
             for(cursor.moveToFirst(), indexNumber = 0; !cursor.isAfterLast(); cursor.moveToNext(), indexNumber++){
 
-                final String path, name, from, id, contentUri;
+                int id;
+                String path, name, from, contentUri;
+                String month, realDate ;
                 path = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA));
-                id = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID));
-                contentUri = queryUri.buildUpon().appendPath(id).build().toString();
+                id = cursor.getInt(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID));
+                contentUri = queryUri.buildUpon().appendPath(String.valueOf(id)).build().toString();
                 int type = cursor.getInt(cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE));//either 1(image) or 3(video), since we don't have 2(audio) yet.
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME));
                 from = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME));
 
                 thumbnailPath = externalCacheDir + "/" + id + ".jpg";
-                MediaFile media_file = new MediaFile(contentUri,name,type,thumbnailPath);
+                MediaFile media_file = new MediaFile(contentUri,name,type,thumbnailPath,id);
 
+                Log.d(TAG, "scanMediaFiles: "+contentUri);
                 long time = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_TAKEN));
                 Calendar calendar = Calendar.getInstance();
 
                 calendar.setTimeInMillis(time);
-                calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH) + 1);
 
-                //Log.d(DTAG,"ALBUM Year: " + calendar.get(Calendar.YEAR) + " Month: "+ calendar.get(Calendar.MONTH)+" Day: " + calendar.get((Calendar.DAY_OF_MONTH)));
-                String realDate = calendar.get(Calendar.YEAR) + "年" +
-                                    calendar.get(Calendar.MONTH)+ "月" +
-                                    calendar.get(Calendar.DAY_OF_MONTH) + "日";
+                //calendar month value is from 0(Jan) - 11(Dec)
+                if(calendar.get(Calendar.MONTH) == Calendar.JANUARY){
+                    realDate = calendar.get(Calendar.YEAR) + "年" +
+                            1 + "月" +
+                            calendar.get(Calendar.DAY_OF_MONTH) + "日";
+                    media_file.setDate(realDate);
+                    Log.d(TAG, "scanMediaFiles: "+ realDate );
+                    month = String.valueOf(1);
 
-                media_file.setDate(realDate);
+                }else if(calendar.get(Calendar.MONTH) == Calendar.DECEMBER){
+                    realDate = calendar.get(Calendar.YEAR) + "年" +
+                            12 + "月" +
+                            calendar.get(Calendar.DAY_OF_MONTH) + "日";
+                    media_file.setDate(realDate);
+                    Log.d(TAG, "scanMediaFiles: "+ realDate );
+                    month = String.valueOf(12);
+
+                }else{
+                    calendar.set(Calendar.MONTH,calendar.get(Calendar.MONTH) + 1);
+                    realDate = calendar.get(Calendar.YEAR) + "年" +
+                            calendar.get(Calendar.MONTH)+ "月" +
+                            calendar.get(Calendar.DAY_OF_MONTH) + "日";
+                    media_file.setDate(realDate);
+                    month = String.valueOf(calendar.get(Calendar.MONTH));
+
+                }
+
                 allItemList.add(media_file);
 
                 String year = String.valueOf(calendar.get(Calendar.YEAR));
-                String month = String.valueOf(calendar.get(Calendar.MONTH));
-                String yyyyMM = year + "/" + month;
+                String yyyyMM = year + "年" + month + "月";
                 // add record
                 if(albumMap.get(yyyyMM) == null) {
-                    Log.d(TAG, "scanMediaFiles - AlbumMap: " + albumMap.get(yyyyMM) );
+                    //Log.d(TAG, "scanMediaFiles - AlbumMap: " + albumMap.get(yyyyMM) );
                     albumMap.put(yyyyMM, new ArrayList<>());
                 }
-                albumMap.get(yyyyMM).add(indexNumber);
 
+                albumMap.get(yyyyMM).add(indexNumber);
                 //creating albums base on the files' folder
                 String albumPath = path.substring(0, path.length() - name.length() - 1);
+
+
                 boolean flag_IsInAlbum = false;
                 for (MediaAlbum i : currentShowCase) {
                     //loop the album folder, if the current image have the same parent folder
@@ -236,52 +261,6 @@ public class DataManager {
         cursor.close();
         createShowcaseList();
         return true;
-    }
-
-    private void createCache(String path, String id, int type) {
-
-        File file = new File(mContext.getExternalCacheDir(), id + ".jpg");
-        Bitmap mBitmap;
-
-        if(!file.exists()) {
-            if (type == 1) {
-
-                InputStream fis = null;
-                try {
-                    fis = mContext.getContentResolver().openInputStream(Uri.parse(path));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-                mBitmap = BitmapFactory.decodeStream(fis, null, null);
-
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                mBitmap = ThumbnailUtils.extractThumbnail(mBitmap, 1080 / 2, 1080 / 2);
-            } else {
-                mBitmap = ThumbnailUtils.createVideoThumbnail(path, MediaStore.Video.Thumbnails.MINI_KIND);
-            }
-            try {
-
-                if(file.createNewFile()) {
-                    FileOutputStream out = new FileOutputStream(file);
-                    mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
-                    out.flush();
-                    out.close();
-                } else {
-                    Log.e("createCache","Cache file creation failed.");
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        Log.d(TAG,"END3 :");
     }
 
     private void createShowcaseList() {
@@ -434,22 +413,24 @@ public class DataManager {
     }
 
 
-    public void loadBitmap(int position, DataAdapter.ViewHolder viewHolder, int mediaType) {
+    public void loadBitmap(int position, DataAdapter.ViewHolder viewHolder, int thumbNailWidth) {
 
         ImageView imageView = viewHolder.mImageView;
 
+        int idKey = allItemList.get(position).getId();
+
         // check if bitmap is cached in memory
-        Bitmap bitmap = getBitmapFromMemCache(String.valueOf(position));
+        Bitmap bitmap = getBitmapFromMemCache(String.valueOf(idKey));
         if (bitmap != null) {
             imageView.setImageBitmap(bitmap);
-            Log.d(TAG, "loadBitmap: position " + position + " memory hit");
+            Log.d(TAG, "loadBitmap: ID " + idKey + " memory hit");
         }
         else { // // check if bitmap is cached in disk
-            bitmap = getBitmapFromDiskCache(String.valueOf(position));
+            bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap);
-                memoryCache.put(String.valueOf(position), bitmap);
-                Log.d(TAG, "loadBitmap: position " + position + " disk hit");
+                memoryCache.put(String.valueOf(idKey), bitmap);
+                Log.d(TAG, "loadBitmap: ID " + idKey + " disk hit");
             }
             else {
                 if(!viewHolder.isLoading()) {
@@ -458,30 +439,31 @@ public class DataManager {
 
                     BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
                     imageView.setTag(workerTask);
-                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, mediaType);
+                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, thumbNailWidth);
                     // workerTask.execute(position, mediaType);
-                    Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
+                    Log.d(TAG, "loadBitmap: ID " + idKey + " miss, reading asynchronously");
                 }
             }
         }
     }
 
-    public void loadBitmap(int position, ItemViewHolder viewHolder, int mediaType) {
+    public void loadBitmap(int position, ItemViewHolder viewHolder, int thumbNailWidth) {
 
         ImageView imageView = viewHolder.imageView;
 
+        int idKey = allItemList.get(position).getId();
         // check if bitmap is cached in memory
-        Bitmap bitmap = getBitmapFromMemCache(String.valueOf(position));
+        Bitmap bitmap = getBitmapFromMemCache(String.valueOf(idKey));
         if (bitmap != null) {
             imageView.setImageBitmap(bitmap);
-            Log.d(TAG, "loadBitmap: position " + position + " memory hit");
+            Log.d(TAG, "loadBitmap: idKey " + idKey + " memory hit");
         }
         else { // // check if bitmap is cached in disk
-            bitmap = getBitmapFromDiskCache(String.valueOf(position));
+            bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap);
-                memoryCache.put(String.valueOf(position), bitmap);
-                Log.d(TAG, "loadBitmap: position " + position + " disk hit");
+                memoryCache.put(String.valueOf(idKey), bitmap);
+                Log.d(TAG, "loadBitmap: idKey " + idKey + " disk hit");
             }
             else {
                 if(!viewHolder.isLoading()) {
@@ -490,9 +472,9 @@ public class DataManager {
 
                     BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
                     imageView.setTag(workerTask);
-                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, mediaType);
+                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, thumbNailWidth);
                     // workerTask.execute(position, mediaType);
-                    Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
+                    Log.d(TAG, "loadBitmap: idKey " + idKey + " miss, reading asynchronously");
                 }
             }
         }
@@ -505,26 +487,32 @@ public class DataManager {
         int width = viewHolder.getCoverSize();
         Log.d("ayayaya", "loadBitmap - width 1:" + viewHolder.getCoverSize());
 
+
+        //change the position because position as key might already have a bitmap stored in memcache, but the bitmap have lower quality.
+        //so we change the position(key) to add a new higher quality bitmap as album cover.
+        int idKey = allItemList.get(position).getId();
+
         if(position == 0){
             position = -1;
         }else{
             position = position * (-2);
         }
 
+
         // check if bitmap is cached in memory
-        Bitmap bitmap = getBitmapFromAlbumMemCache(String.valueOf(position));
+        Bitmap bitmap = getBitmapFromAlbumMemCache(String.valueOf(idKey));
         if (bitmap != null) {
             imageView.setImageBitmap(bitmap);
-            Log.d(TAG, "loadBitmap: position " + position + " memory hit");
+            Log.d(TAG, "loadBitmap: idKey " + idKey + " memory hit");
 
         }
         else { // // check if bitmap is cached in disk
 
-            bitmap = getBitmapFromDiskCache(String.valueOf(position));
+            bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap);
-                albumMemoryCache.put(String.valueOf(position), bitmap);
-                Log.d(TAG, "loadBitmap: position " + position + " disk hit. albumMemSize: "+ albumMemoryCache.size()+ " MY Albums count: "+ getShowcaseOrAlbumOrIndex(0).size());
+                albumMemoryCache.put(String.valueOf(idKey), bitmap);
+                //Log.d(TAG, "loadBitmap: position " + idKey + " disk hit. albumMemSize: "+ albumMemoryCache.size()+ " MY Albums count: "+ getShowcaseOrAlbumOrIndex(0).size());
             }
             else {
                 if(!viewHolder.isLoading()) {
@@ -535,7 +523,7 @@ public class DataManager {
                     imageView.setTag(workerTask);
                     workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, adapterType, width);
                     // workerTask.execute(position, mediaType);
-                    Log.d(TAG, "loadBitmap: position " + position + " miss, reading asynchronously");
+                    Log.d(TAG, "loadBitmap: idKey " + idKey + " miss, reading asynchronously");
                 }
             }
         }
@@ -559,11 +547,14 @@ public class DataManager {
         if(style == 1){
             // Add to memory cache
             if (getBitmapFromMemCache(key) == null) {
+
                 memoryCache.put(key, bitmap);
             }
         }else{
             if (getBitmapFromAlbumMemCache(key) == null) {
+
                 albumMemoryCache.put(key, bitmap);
+
             }
         }
 
@@ -571,9 +562,6 @@ public class DataManager {
         // Also add to disk cache
         synchronized (diskCacheLock) {
             try {
-                if(diskLruCache != null && style == 3 && diskLruCache.get(key) != null ){
-                        diskLruCache.remove(key);
-                }
                 if (diskLruCache != null && diskLruCache.get(key) == null) {
                     DiskLruCache.Editor editor = diskLruCache.edit(key);
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -625,7 +613,8 @@ public class DataManager {
         }
         return null;
     }
-    class InitDiskCacheTask extends AsyncTask<File, Void, Void> {
+
+    static class InitDiskCacheTask extends AsyncTask<File, Void, Void> {
         @Override
         protected Void doInBackground(File... params) {
 
@@ -674,33 +663,36 @@ public class DataManager {
 
 
             int position = params[0];
-            int width = 150;
+            int width;
             MediaFile file;
-            Log.d("ayayaya", "doInBackground: entered, length: "+ params.length);
-            //
+
+
+            //means we are decoding a bitmap for album cover, which needs higher quality.
             if(params.length == 3){
                 width = params[2];
-                Log.d("ayayaya", "doInBackground: entered, WIDTH: "+ params[2]);
+
                 if(position == -1){
                     file = allItemList.get(position + 1);
                 }else{
                     file = allItemList.get(position/(-2));
                 }
-
             }else{
+                //normal size, width = screen/4.
+                width =  params[1];
                 file = allItemList.get(position);
             }
 
+            Log.d(TAG, "doInBackground: " + file.getPath());
             //String path = imageUrlList.get(position);
 
             final Bitmap bitmap;
 
+            Log.d(TAG, "doInBackground: Thread Name: "+ Thread.currentThread().getName());
             // Video
             if(file.getType() == 3) {
 
                 MediaMetadataRetriever retriever = new MediaMetadataRetriever();
                 retriever.setDataSource(mContext, Uri.parse(file.getPath()));
-                // bitmap = retriever.getScaledFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 150, 150);
                 bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
             }
             // Image
@@ -717,10 +709,12 @@ public class DataManager {
             }
 
             if(params.length == 3){
-                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(position), bitmap,3));
+                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(file.getId()), bitmap,3));
             }else{
-                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(position), bitmap,1));
+                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(file.getId()), bitmap,1));
+                Log.d(TAG, "doInBackground - style : "+ params.length );
             }
+
 
 
             return bitmap;

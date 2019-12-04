@@ -30,9 +30,10 @@ final class PhotoSection extends Section {
     private static final int TYPE_IMAGE = 0;
     private static final int TYPE_VIDEO = 1;
     private static final String TAG = "PhotoSection";
+    private int width;
 
     PhotoSection(@NonNull final String title, @NonNull final List<Integer> list,
-                 @NonNull final MainActivity activity, @NonNull final ClickListener clickListener) {
+                 @NonNull final MainActivity activity, @NonNull final ClickListener clickListener, int width) {
         super(SectionParameters.builder()
                 .itemResourceId(R.layout.photo_section_item)
                 .headerResourceId(R.layout.photo_section_header)
@@ -42,6 +43,7 @@ final class PhotoSection extends Section {
         this.list = list;
         this.hostActivity = activity;
         this.clickListener = clickListener;
+        this.width = width;
     }
 
     @Override
@@ -60,11 +62,7 @@ final class PhotoSection extends Section {
 
         final int positionInAll = list.get(position);
         Log.d("DEBUGALL", "onBindItemViewHolder position: " + position);
-//
-//        Glide.with(hostActivity)
-//                .asBitmap()
-//                .load(photo)
-//                .into(itemHolder.imageView);
+
 
         itemHolder.imageView.setImageDrawable(
                 hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
@@ -72,11 +70,11 @@ final class PhotoSection extends Section {
         if(DataManager.getInstance(hostActivity).getAllItemList().get(positionInAll).getType() == 3) {
             //Log.d("DEBUGALL", "onBindItemViewHolder: " + positionInAll);
             itemHolder.mVideoIconImageView.setVisibility(View.VISIBLE);
-            DataManager.getInstance(hostActivity).loadBitmap(positionInAll, itemHolder, TYPE_VIDEO);
+            DataManager.getInstance(hostActivity).loadBitmap(positionInAll, itemHolder, width);
         }
         else {
             itemHolder.mVideoIconImageView.setVisibility(View.GONE);
-            DataManager.getInstance(hostActivity).loadBitmap(positionInAll, itemHolder, TYPE_IMAGE);
+            DataManager.getInstance(hostActivity).loadBitmap(positionInAll, itemHolder, width);
         }
 
         //TODO: The positionInAll variable might be in accurate on a insert/deletion action.
