@@ -1,5 +1,6 @@
 package com.demo.tikpic.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
@@ -11,9 +12,14 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.demo.tikpic.R;
 import com.demo.tikpic.viewpager.ViewPagerFragment;
@@ -29,7 +35,31 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     TextureView textureView;
     private int screenWidth, screenHight, mScreenOrientation;
     private Context mContext;
-    ImageView item1;
+    ImageView mPlayIcon;
+    ImageButton button;
+    SeekBar seekBar;
+    private TextView text_now, text_all;
+    private Thread thread;
+    private int CurrentPosition;
+    private boolean flag_play;
+
+    private Thread thr() {
+        return new Thread() {
+            @Override
+            public void run() {
+                //super.run();
+                while (flag_play) {
+                    if (CurrentPosition != mMediaPlayer.getCurrentPosition()) {
+
+                        CurrentPosition = mMediaPlayer.getCurrentPosition();
+                        seekBar.setProgress(CurrentPosition);
+
+                    }
+                }
+
+            }
+        };
+    }
 
     public VideoView(Context context, String path) {
         super(context);
@@ -41,6 +71,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
             e.printStackTrace();
         }
     }
+
 
     public VideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -70,6 +101,21 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
             @Override
             public void onPrepared(MediaPlayer mp) {
                 //mMediaPlayer.start();
+
+                seekBar.setMax(mMediaPlayer.getDuration());
+
+                text_all.setText(getShowTime(mMediaPlayer.getDuration()));
+                flag_play=true;
+
+                thread = thr();
+                thread.start();
+            }
+        });
+        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mPlayIcon.setVisibility(View.VISIBLE);
+                seekBar.setProgress(mMediaPlayer.getDuration());
             }
         });
 
@@ -91,18 +137,87 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         }*/
     }
 
-    private void anotherView() {
-        item1 = new ImageView(mContext);
 
-        item1.setImageResource(R.drawable.video_icon_normal);//设置图片
+    @SuppressLint("ResourceType")
+    private void anotherView() {
+        mPlayIcon = new ImageView(mContext);
+
+        mPlayIcon.setImageResource(R.drawable.video_icon_normal);//设置图片
 
 
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-               dip2px(mContext,150), dip2px(mContext,150));
+                dip2px(mContext, 150), dip2px(mContext, 150));
         lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
         lp.addRule(RelativeLayout.CENTER_VERTICAL);
-        item1.setLayoutParams(lp);//设置布局参数
-        addView(item1);//RelativeLayout添加子View
+        mPlayIcon.setLayoutParams(lp);//设置布局参数
+        addView(mPlayIcon);//RelativeLayout添加子View
+
+        VideoToolbar videoToolbar = new VideoToolbar(mContext);
+        RelativeLayout.LayoutParams lp2 = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp2.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        videoToolbar.setLayoutParams(lp2);//设置布局参数
+        addView(videoToolbar);
+
+        button = findViewById(R.id.button);
+        button.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.pause();
+
+                    mPlayIcon.setVisibility(View.VISIBLE);
+                } else {
+                    mMediaPlayer.start();
+
+                    mPlayIcon.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+
+        text_now = (TextView) findViewById(R.id.text_now);
+        text_all = (TextView) findViewById(R.id.text_all);
+        seekBar = findViewById(R.id.seekBar);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // TODO Auto-generated method stub
+                if (progress >= 0 && mMediaPlayer.isPlaying()) {
+                    // 如果是用户手动拖动控件，则设置视频跳转。
+                    if (fromUser) {
+                        mMediaPlayer.seekTo(progress);
+                    }
+                    // 设置当前播放时间
+
+                } else {
+                    if (fromUser) {
+                        mMediaPlayer.seekTo(progress);
+                    }
+                }
+                text_now.setText(getShowTime(progress));
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+
+            }
+
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+
+            }
+        });
+    }
+
+    private String getShowTime(Integer n) {
+        String s;
+        //n = n / 1000;
+        Integer nn;
+        nn = n / 1000 / 60;
+        s = nn.toString() + ":";
+        nn = n / 1000;
+        s += nn.toString();
+        return s;
     }
 
     public static int dip2px(Context context, float dpValue) {
@@ -141,10 +256,10 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private void play() {
 
         mMediaPlayer.setSurface(surface);
-
-        mMediaPlayer.start();
-        mMediaPlayer.pause();
-        item1.setVisibility(VISIBLE);
+        mMediaPlayer.seekTo(0);
+//        mMediaPlayer.start();
+//        mMediaPlayer.pause();
+        mPlayIcon.setVisibility(VISIBLE);
     }
 
     @Override
@@ -160,10 +275,12 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceT) {
+        flag_play=false;
         surfaceT = null;
         surface = null;
         mMediaPlayer.stop();
         mMediaPlayer.release();
+
         return true;
     }
 
@@ -205,11 +322,11 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
 
-            item1.setVisibility(View.VISIBLE);
+            mPlayIcon.setVisibility(View.VISIBLE);
         } else {
             mMediaPlayer.start();
 
-            item1.setVisibility(View.INVISIBLE);
+            mPlayIcon.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -220,17 +337,19 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return onTouchEvent(ev);
+
+        return false;//return onTouchEvent(ev);
     }
 
     public void reset() {
         if (mMediaPlayer.isPlaying()) {
 
             // mMediaPlayer.pause();
-            mMediaPlayer.pause();
-            item1.setVisibility(View.VISIBLE);
             mMediaPlayer.seekTo(0);
+            mMediaPlayer.pause();
+            mPlayIcon.setVisibility(View.VISIBLE);
 
         }
     }
+
 }

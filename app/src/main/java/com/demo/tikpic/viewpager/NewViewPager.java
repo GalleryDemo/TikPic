@@ -61,10 +61,6 @@ public class NewViewPager extends ViewPager {
         });
     }
 
-
-    
-
-
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = ev.getAction() & MotionEvent.ACTION_MASK;

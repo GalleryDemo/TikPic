@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 
 public class ImageDisplayView extends View {
 
-    private int mState;//显示状态 合适屏幕，原图，或自由状态
+    private int mState;//显示状态 合适屏幕，原图
 
     private Matrix mMatrix = new Matrix();//绘制前最终变换矩阵
     //上次缩放倍率
@@ -50,11 +50,11 @@ public class ImageDisplayView extends View {
 
     private int mStateMoveZoom = 0;
 
+    private Map<String, String> blockState = new HashMap<>();
 
     //缩放限制开关
     private int mScaleLimit = 1;
     private ExecutorService mCachedThreadPool = Executors.newCachedThreadPool();
-
 
     //手势
     private InputDetector mInputDetector;
@@ -207,8 +207,6 @@ public class ImageDisplayView extends View {
         displayEffect();
     }
 
-    Map<String, String> blockState = new HashMap<String, String>();
-
     private void block() {
         if (mDisplayWindow.bitmap == null) {
             return;
@@ -246,12 +244,20 @@ public class ImageDisplayView extends View {
                 Bitmap blockBitmap = mLoader.getBitmap(key);
                 if (blockBitmap == null) {
 
-//                    for(int k = mImage.sampleSize*2;mImage.imageSize[0]>;k*=2){
-//
+//                    for(int k = mImage.sampleSize*2, l=2;k<=caculateSampleSize(caculateRatio(), mImage.sampleSize);k*=2,l*=2){
+//                        String key2 = k + "/" + (i/l) + "/" + (j/l);
+//                        blockBitmap = mLoader.getBitmap(key2);
+//                        if(blockBitmap!=null){
+//                            Matrix xx = new Matrix();
+//                            xx.setScale(k/mImage.sampleSize,k/mImage.sampleSize);
+//                            int blocksize = mImage.basicBlockSize[0]*mImage.sampleSize;
+//                            blockBitmap=Bitmap.createBitmap(blockBitmap,(i%l)*blocksize,(j%l)*blocksize,(i%l+1)*blocksize,(j%l+1)*blocksize,xx,false);
+//                            break;
+//                        }
 //                    }
 
 
-                    if (blockState.containsKey(key) == false) {
+                    if (!blockState.containsKey(key)) {
                         // 1 表示没有加载过
                         blockState.put(key, "1");
                         //正常块的长宽直接乘
@@ -268,14 +274,13 @@ public class ImageDisplayView extends View {
                                     return;
                                 } else {
                                     Rect blockRect = new Rect(rectLeft, rectTop, rectLeft + thisWidth, rectTop + thisHeight);
-                                    long begin = System.currentTimeMillis();
+                                 //   long begin = System.currentTimeMillis();
                                     Bitmap blockBitmap = mImage.resource.decodeRegion(blockRect, options);
                                     //Log.d(TAG, "run: memmmmmmmmm"+(float)blockBitmap.getByteCount()/1024/1024);
-                                    long end = System.currentTimeMillis();
+                                   // long end = System.currentTimeMillis();
                                     //Log.d(TAG, "run: "+key+"  time :"+(end-begin));
                                     mLoader.addBitmap(key, blockBitmap);
                                     block();
-                                    invalidate();
                                 }
                             }
                         });
@@ -289,15 +294,16 @@ public class ImageDisplayView extends View {
                 final int rectTop = nj * mImage.adaptBlockSize[1] / mImage.sampleSize;
                 if (blockBitmap != null) {
                     blockState.put(mImage.sampleSize + "//" + ni + "/" + nj, key);
-                    long begin = System.currentTimeMillis();
+                  //  long begin = System.currentTimeMillis();
+                    final Bitmap xx = blockBitmap;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            middleCanvas.drawBitmap(blockBitmap, rectLeft, rectTop, null);
+                            middleCanvas.drawBitmap(xx, rectLeft, rectTop, null);
                             invalidate();
                         }
                     }).start();
-                    long end = System.currentTimeMillis();
+                   // long end = System.currentTimeMillis();
                  //   Log.d(TAG, "run: " + key + "  time :" + (end - begin));
                 }
             }
@@ -312,21 +318,15 @@ public class ImageDisplayView extends View {
         }
         mScreenSize[0] = metrics.widthPixels;
         mScreenSize[1] = metrics.heightPixels;
-        Log.d(TAG, "getWindowInfo: " + mScreenSize[0] + " / " + mScreenSize[1]);
+        //Log.d(TAG, "getWindowInfo: " + mScreenSize[0] + " / " + mScreenSize[1]);
 
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        //canvas.drawARGB(255,0,0,0);
-
         canvas.drawColor(mColor);
         updateLocation();
-        long begin = System.currentTimeMillis();
         canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
-        long end = System.currentTimeMillis();
-        //Log.d(TAG, "ondrawwwwwwwww"+"  time :"+(end-begin));
-
 
     }
 
@@ -364,9 +364,9 @@ public class ImageDisplayView extends View {
             options.inSampleSize = 2;
         }
         Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
-        long begin = System.currentTimeMillis();
+       // long begin = System.currentTimeMillis();
         mDisplayWindow.bitmap = mImage.resource.decodeRegion(blockRect, options);
-        long end = System.currentTimeMillis();
+       // long end = System.currentTimeMillis();
         //Log.d(TAG, "displayFirst: " + "  time :" + (end - begin));
 
         mMatrix = new Matrix();
@@ -461,7 +461,6 @@ public class ImageDisplayView extends View {
         float dy = -ntop - mMatrixTranslate[1];
 //        float[] dxy = caculateBoundary(dx, dy);
 //        setTranslate(dxy[0], dxy[1]);
-        Log.d(TAG, "imageZoom: dxdy   "+dx+"   //  "+dy);
         imageMove(dx, dy);
         invalidate();
     }
@@ -487,9 +486,9 @@ public class ImageDisplayView extends View {
         }
         if (isBlockChanged) {
             setTranslate(transXY[0] + dxy[0], transXY[1] + dxy[1]);
-            long begin = System.currentTimeMillis();
+          //  long begin = System.currentTimeMillis();
             block();
-            long end = System.currentTimeMillis();
+         //   long end = System.currentTimeMillis();
            // Log.d(TAG, "imageMoveimageMoveimageMove: " + "  time :" + (end - begin));
 
         } else {
@@ -513,7 +512,7 @@ public class ImageDisplayView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         // invalidate();
-        final int action = event.getAction() & MotionEvent.ACTION_MASK;
+       // final int action = event.getAction() & MotionEvent.ACTION_MASK;
         return mInputDetector.onTouchEvent(event);
 
     }
