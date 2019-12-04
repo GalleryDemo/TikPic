@@ -50,6 +50,8 @@ public class ImageDisplayView extends View {
 
     private int mStateMoveZoom = 0;
 
+
+    //缩放限制开关
     private int mScaleLimit = 1;
     private ExecutorService mCachedThreadPool = Executors.newCachedThreadPool();
 
@@ -244,13 +246,17 @@ public class ImageDisplayView extends View {
                 Bitmap blockBitmap = mLoader.getBitmap(key);
                 if (blockBitmap == null) {
 
+//                    for(int k = mImage.sampleSize*2;mImage.imageSize[0]>;k*=2){
+//
+//                    }
+
+
                     if (blockState.containsKey(key) == false) {
                         // 1 表示没有加载过
                         blockState.put(key, "1");
                         //正常块的长宽直接乘
                         final int ii = i;
                         final int jj = j;
-
                         mCachedThreadPool.execute(new Runnable() {
                             @Override
                             public void run() {
@@ -292,7 +298,7 @@ public class ImageDisplayView extends View {
                         }
                     }).start();
                     long end = System.currentTimeMillis();
-                    Log.d(TAG, "run: " + key + "  time :" + (end - begin));
+                 //   Log.d(TAG, "run: " + key + "  time :" + (end - begin));
                 }
             }
         }
@@ -341,7 +347,7 @@ public class ImageDisplayView extends View {
         float ratio = caculateRatio();
         mScale = 1.0f;
         mMatrix = new Matrix();
-        imageZoom(1 / ratio, new Point(0, 0));
+        imageZoom(ratio, new Point(0, 0));
         mState = 1;
     }
 
@@ -352,8 +358,8 @@ public class ImageDisplayView extends View {
         options.inJustDecodeBounds = false;
         options.inPreferredConfig = Bitmap.Config.RGB_565;
 
-        if (ratio > 1.0f) {
-            options.inSampleSize = (int) ratio * 2;
+        if (ratio < 1.0f) {
+            options.inSampleSize = (int) (1/ratio) * 2;
         } else {
             options.inSampleSize = 2;
         }
@@ -361,7 +367,7 @@ public class ImageDisplayView extends View {
         long begin = System.currentTimeMillis();
         mDisplayWindow.bitmap = mImage.resource.decodeRegion(blockRect, options);
         long end = System.currentTimeMillis();
-        Log.d(TAG, "displayFirst: " + "  time :" + (end - begin));
+        //Log.d(TAG, "displayFirst: " + "  time :" + (end - begin));
 
         mMatrix = new Matrix();
         mMatrix.setScale(options.inSampleSize / ratio, options.inSampleSize / ratio);
@@ -406,18 +412,26 @@ public class ImageDisplayView extends View {
         float newMatrixScale = mScale * x;
 
         //问题代码
-//        if(mScaleLimit==1){
-//            if(mScale>1.0f)
-//            {
-//                mScale=1.0f;
-//            }else if(mScale==1.0f){
-//                return;
-//            }else if(mScale<caculateRatio()-0.1){
-//                mScale=caculateRatio();
-//            }else if(mScale==caculateRatio()-0.1){
-//                return;
-//            }
-//        }
+        if(mScaleLimit==1){
+            if(caculateRatio()<=1.0f){
+                if(newMatrixScale>1.0f){
+                    newMatrixScale=1.0f;
+                    x=1/mScale;
+                }else if(newMatrixScale<caculateRatio()){
+                    newMatrixScale=caculateRatio();
+                    x=caculateRatio()/mScale;
+                }
+            }else{
+                if(newMatrixScale<1.0f){
+                    newMatrixScale=1.0f;
+                    x=1/mScale;
+                }else if(newMatrixScale>caculateRatio()){
+                    newMatrixScale=caculateRatio();
+                    x=caculateRatio()/mScale;
+                }
+            }
+
+        }
 
 
         boolean update1 = false;
@@ -447,40 +461,36 @@ public class ImageDisplayView extends View {
         float dy = -ntop - mMatrixTranslate[1];
 //        float[] dxy = caculateBoundary(dx, dy);
 //        setTranslate(dxy[0], dxy[1]);
+        Log.d(TAG, "imageZoom: dxdy   "+dx+"   //  "+dy);
         imageMove(dx, dy);
         invalidate();
     }
 
     private void imageMove(float dx, float dy) {
         float[] dxy = caculateBoundary(dx, dy);
-        //float[] dxy = new float[]{dx,dy};
-
-//        long begin = System.currentTimeMillis();
-        float[] transXY = new float[2];
+        //Log.d(TAG, "imageMove: caculate dxy  "+dxy[0]+"  //  "+dxy[1]);
+        float[] transXY = new float[]{0.0f,0.0f};
         //x轴偏移超过一格
         boolean isBlockChanged = false;
         for (int i = 0; i < 2; i++) {
-            while (((-mMatrixTranslate[i] + dxy[i] + mScreenSize[i]) / (mMatrixScale / mImage.sampleSize) > mDisplayWindow.size[i] * mImage.adaptBlockSize[i]) &&
+            while (((-mMatrixTranslate[i] - dxy[i]-transXY[i] + mScreenSize[i]) / (mMatrixScale / mImage.sampleSize) > mDisplayWindow.size[i] * mImage.adaptBlockSize[i]) &&
                     (mDisplayWindow.posion[i] <= mImage.numBlocks[i] - mDisplayWindow.size[i])) {
                 mDisplayWindow.posion[i]++;
-                transXY[i] = mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
+                transXY[i] += mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
                 isBlockChanged = true;
             }
-            while ((mMatrixTranslate[i] + dxy[i] > 0.0f) && (mDisplayWindow.posion[i] > 0)) {
+            while ((mMatrixTranslate[i] + dxy[i]+transXY[i] > 0.0f) && (mDisplayWindow.posion[i] > 0)) {
                 mDisplayWindow.posion[i]--;
-                transXY[i] = -mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
+                transXY[i] += -mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
                 isBlockChanged = true;
             }
         }
         if (isBlockChanged) {
             setTranslate(transXY[0] + dxy[0], transXY[1] + dxy[1]);
-            Log.d(TAG, "imageMove: change");
-
-
             long begin = System.currentTimeMillis();
             block();
             long end = System.currentTimeMillis();
-            Log.d(TAG, "imageMoveimageMoveimageMove: " + "  time :" + (end - begin));
+           // Log.d(TAG, "imageMoveimageMoveimageMove: " + "  time :" + (end - begin));
 
         } else {
             //Log.d(TAG, "imageMove: dxdy" + dxy[0] + "  /  " + dxy[1]);
@@ -488,8 +498,6 @@ public class ImageDisplayView extends View {
         }
 
         invalidate();
-//        long end = System.currentTimeMillis();
-        // Log.d(TAG, "imageMove: time"+(end-begin));
     }
 
     //更新缩放倍率和偏移记录
@@ -563,14 +571,9 @@ public class ImageDisplayView extends View {
     }
 
     private float caculateRatio() {
-        float ww = (float) mImage.imageSize[0] / (float) mScreenSize[0];
-        float hh = (float) mImage.imageSize[1] / (float) mScreenSize[1];
-        if (ww < 1 && hh < 1) {
-            //return 1.0f;
-            return ww > hh ? ww : hh;
-        } else {
-            return ww > hh ? ww : hh;
-        }
+        float ww = (float) mScreenSize[0] / (float) mImage.imageSize[0];
+        float hh = (float) mScreenSize[1] / (float) mImage.imageSize[1];
+        return ww < hh ? ww : hh;
     }
 
     public void reset() {
