@@ -29,6 +29,9 @@ import com.demo.tikpic.gallery.GalleryFragment;
 import com.demo.tikpic.timeline.TimelineFragment;
 import com.google.android.material.navigation.NavigationView;
 
+import leakcanary.AppWatcher;
+import leakcanary.LeakCanary;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";

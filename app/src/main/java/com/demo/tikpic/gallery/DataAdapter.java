@@ -95,6 +95,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             holder.switchLoadState();
             Log.d(TAG, "onViewRecycled: loading state switched");
             ((AsyncTask) holder.mImageView.getTag()).cancel(true);
+
         }
     }
 
@@ -127,6 +128,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             mVideoIconImageView = itemView.findViewById(R.id.videoPlaybackIcon);
 
         }
+
 
 
     }

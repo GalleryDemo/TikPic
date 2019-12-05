@@ -77,7 +77,7 @@ final class PhotoSection extends Section {
             DataManager.getInstance(hostActivity).loadBitmap(positionInAll, itemHolder, width);
         }
 
-        //TODO: The positionInAll variable might be in accurate on a insert/deletion action.
+
         itemHolder.rootView.setOnClickListener(v ->
                 clickListener.onItemRootViewClicked(title, positionInAll)
         );

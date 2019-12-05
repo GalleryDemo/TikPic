@@ -43,8 +43,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 import static android.os.Environment.isExternalStorageRemovable;
@@ -59,19 +72,19 @@ public class DataManager {
 
 
     //all media files are stored in this list.
-    private List<MediaFile> allItemList;
+    private static List<MediaFile> allItemList;
     private List<String> imagePaths;
     private Map<String, List<Integer>> albumMap;
 
 
-    private Context mContext;
+    private static Context mContext;
     //the current show case
     private List<MediaAlbum> currentShowCase;
     private static DataManager sDataManager;
 
     // Memory Cache
-    private LruCache<String, Bitmap> memoryCache;
-    private LruCache<String, Bitmap> albumMemoryCache;
+    private static LruCache<String, Bitmap> memoryCache;
+    private static LruCache<String, Bitmap> albumMemoryCache;
 
 
     // Disk Cache
@@ -82,17 +95,59 @@ public class DataManager {
     private static final String DISK_CACHE_SUBDIR = "thumbnails";
     //private static final String DISK_CACHE_SUBDIR_ALBUM = "albumThumbnails";
 
-    private ExecutorService cachedThreadPool;
+    private static ExecutorService cachedThreadPool;
+
+    static final Executor THREAD_POOL_EXECUTOR1;
+    private static final int CORE_POOL_SIZE =  1;
+    private static final int MAXIMUM_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2 +1;
+    private static final int BACKUP_POOL_SIZE = 5;
+    private static final int KEEP_ALIVE_SECONDS = 1;
+
+    private static BlockingQueue<Runnable> queue = new LinkedBlockingDeque<Runnable>();
+    private static SynchronousQueue<Runnable> sQueue = new SynchronousQueue<>(false);
+    private static ThreadPoolExecutor sBackupExecutor;
+    private static LinkedBlockingQueue<Runnable> sBackupExecutorQueue;
+
+
+    private static final RejectedExecutionHandler sRunOnSerialPolicy =
+            new RejectedExecutionHandler() {
+                public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+                    // As a last ditch fallback, run it on an executor with an unbounded queue.
+                    // Create this executor lazily, hopefully almost never.
+                    synchronized (this) {
+                        if (sBackupExecutor == null) {
+                            sBackupExecutorQueue = new LinkedBlockingQueue<Runnable>();
+                            sBackupExecutor = new ThreadPoolExecutor(
+                                    BACKUP_POOL_SIZE, BACKUP_POOL_SIZE, KEEP_ALIVE_SECONDS,
+                                    TimeUnit.SECONDS, sBackupExecutorQueue, sThreadFactory);
+                            sBackupExecutor.allowCoreThreadTimeOut(true);
+                            sBackupExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+                        }
+                    }
+                    sBackupExecutor.execute(r);
+                }
+            };
+
+    private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+        private final AtomicInteger mCount = new AtomicInteger(1);
+
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "AsyncTask #" + mCount.getAndIncrement());
+        }
+    };
+    static {
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_SECONDS, TimeUnit.SECONDS,
+                sQueue, sThreadFactory);
+        threadPoolExecutor.setRejectedExecutionHandler(sRunOnSerialPolicy);
+        THREAD_POOL_EXECUTOR1 = threadPoolExecutor;
+
+    }
 
     private DataManager(Context context) {
         mContext = context.getApplicationContext();
         allItemList = new ArrayList<>();
         GalleryShowCaseList = new ArrayList<>();
-
-
-
-
-
         currentShowCase = new ArrayList<>();
         imagePaths = new ArrayList<>();
         albumMap = new LinkedHashMap<>();
@@ -100,6 +155,7 @@ public class DataManager {
 
 
         // Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
+        //Log.d(TAG, "DataManager: CORE_POOL_SIZE" + CORE_POOL_SIZE);
         scanMediaFiles();
 
         // initialize memory cache
@@ -225,7 +281,9 @@ public class DataManager {
                 allItemList.add(media_file);
 
                 String year = String.valueOf(calendar.get(Calendar.YEAR));
-                String yyyyMM = year + "年" + month + "月";
+                String day = String.valueOf(calendar.get(Calendar.DATE));
+
+                String yyyyMM = year + "年" + month + "月" + day + "日";
                 // add record
                 if(albumMap.get(yyyyMM) == null) {
                     //Log.d(TAG, "scanMediaFiles - AlbumMap: " + albumMap.get(yyyyMM) );
@@ -413,6 +471,7 @@ public class DataManager {
     }
 
 
+
     public void loadBitmap(int position, DataAdapter.ViewHolder viewHolder, int thumbNailWidth) {
 
         ImageView imageView = viewHolder.mImageView;
@@ -426,7 +485,9 @@ public class DataManager {
             Log.d(TAG, "loadBitmap: ID " + idKey + " memory hit");
         }
         else { // // check if bitmap is cached in disk
+
             bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
+            Log.d(TAG, "loadBitmap - Bitmap: "+ bitmap);
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap);
                 memoryCache.put(String.valueOf(idKey), bitmap);
@@ -436,10 +497,10 @@ public class DataManager {
                 if(!viewHolder.isLoading()) {
                     // change viewholder's loading state from false to true
                     viewHolder.switchLoadState();
-
                     BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
                     imageView.setTag(workerTask);
-                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, thumbNailWidth);
+
+                    workerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, position, thumbNailWidth);
                     // workerTask.execute(position, mediaType);
                     Log.d(TAG, "loadBitmap: ID " + idKey + " miss, reading asynchronously");
                 }
@@ -472,7 +533,7 @@ public class DataManager {
 
                     BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
                     imageView.setTag(workerTask);
-                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, thumbNailWidth);
+                    workerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, position, thumbNailWidth);
                     // workerTask.execute(position, mediaType);
                     Log.d(TAG, "loadBitmap: idKey " + idKey + " miss, reading asynchronously");
                 }
@@ -521,7 +582,7 @@ public class DataManager {
 
                     BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
                     imageView.setTag(workerTask);
-                    workerTask.executeOnExecutor(THREAD_POOL_EXECUTOR, position, adapterType, width);
+                    workerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, position, adapterType, width);
                     // workerTask.execute(position, mediaType);
                     Log.d(TAG, "loadBitmap: idKey " + idKey + " miss, reading asynchronously");
                 }
@@ -543,7 +604,7 @@ public class DataManager {
         return new File(cachePath + File.separator + uniqueName);
     }
 
-    private void addBitmapToCache(String key, Bitmap bitmap,int style) {
+    private static void addBitmapToCache(String key, Bitmap bitmap,int style) {
         if(style == 1){
             // Add to memory cache
             if (getBitmapFromMemCache(key) == null) {
@@ -580,11 +641,46 @@ public class DataManager {
         }
     }
 
-    private Bitmap getBitmapFromMemCache(String key) {
+    private static Bitmap getBitmapFromMemCache(String key) {
         return memoryCache.get(key);
     }
-    private Bitmap getBitmapFromAlbumMemCache(String key) {
+    private static Bitmap getBitmapFromAlbumMemCache(String key) {
         return albumMemoryCache.get(key);
+    }
+    class MyCallable implements Callable<Bitmap> {
+        private String key;
+
+        public MyCallable(String key){
+            this.key = key;
+        }
+
+        @Override
+        public Bitmap call() {
+            Log.d(TAG, "call: " + Thread.currentThread().getName());
+            synchronized (diskCacheLock) {
+                // Wait while disk cache is started from background thread
+                while (diskCacheStarting) {
+                    try {
+                        diskCacheLock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (diskLruCache != null) {
+                    try {
+                        DiskLruCache.Value value = diskLruCache.get(key);
+                        if(value != null) {
+                            String encodedBitmap = value.getString(0);
+                            byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
+                            return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
     }
 
     private Bitmap getBitmapFromDiskCache(String key) {
@@ -633,24 +729,29 @@ public class DataManager {
         }
     }
 
-    class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
+    private static class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
 
         private WeakReference<RecyclerView.ViewHolder> viewHolderWeakRef;
 
         private WeakReference<ImageView> imageViewWeakRef;
         private InputStream is = null;
+        private boolean cancelled;
+
 
         BitmapWorkerTask(DataAdapter.ViewHolder viewHolder) {
+
             viewHolderWeakRef = new WeakReference<>(viewHolder);
             imageViewWeakRef = new WeakReference<>(viewHolder.mImageView);
         }
 
         BitmapWorkerTask(ItemViewHolder viewHolder) {
+
             viewHolderWeakRef = new WeakReference<>(viewHolder);
             imageViewWeakRef = new WeakReference<>(viewHolder.imageView);
         }
 
         BitmapWorkerTask(AlbumsAdapter.ViewHolder viewHolder) {
+
             viewHolderWeakRef = new WeakReference<>(viewHolder);
             imageViewWeakRef = new WeakReference<>(viewHolder.albumCoverImage);
         }
@@ -660,64 +761,72 @@ public class DataManager {
 
         @Override
         protected Bitmap doInBackground(Integer... params) {
+            cancelled = isCancelled();
 
+            if(!cancelled){
+                int position = params[0];
+                int width;
+                MediaFile file;
 
-            int position = params[0];
-            int width;
-            MediaFile file;
+                //means we are decoding a bitmap for album cover, which needs higher quality.
+                if(params.length == 3){
+                    width = params[2];
 
-
-            //means we are decoding a bitmap for album cover, which needs higher quality.
-            if(params.length == 3){
-                width = params[2];
-
-                if(position == -1){
-                    file = allItemList.get(position + 1);
+                    if(position == -1){
+                        file = allItemList.get(position + 1);
+                    }else{
+                        file = allItemList.get(position/(-2));
+                    }
                 }else{
-                    file = allItemList.get(position/(-2));
-                }
-            }else{
-                //normal size, width = screen/4.
-                width =  params[1];
-                file = allItemList.get(position);
-            }
-
-            Log.d(TAG, "doInBackground: " + file.getPath());
-            //String path = imageUrlList.get(position);
-
-            final Bitmap bitmap;
-
-            Log.d(TAG, "doInBackground: Thread Name: "+ Thread.currentThread().getName());
-            // Video
-            if(file.getType() == 3) {
-
-                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-                retriever.setDataSource(mContext, Uri.parse(file.getPath()));
-                bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-            }
-            // Image
-            else {
-                try {
-                    is = mContext.getContentResolver().openInputStream(Uri.parse(file.getPath()));
-
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                    //normal size, width = screen/4.
+                    width =  params[1];
+                    file = allItemList.get(position);
                 }
 
-                bitmap = decodeBitmapFromStream(is, width, width);
-                Log.d(TAG,"IS： "+ is);
-            }
 
-            if(params.length == 3){
-                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(file.getId()), bitmap,3));
+                //String path = imageUrlList.get(position);
+
+                final Bitmap bitmap;
+
+                Log.d(TAG, "doInBackground: Thread Name: "+ Thread.currentThread());
+                // Video
+                if(file.getType() == 3) {
+                    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                    retriever.setDataSource(mContext, Uri.parse(file.getPath()));
+                    bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                    cancelled = isCancelled();
+                }
+                // Image
+                else {
+                    cancelled = isCancelled();
+                    try {
+                        is = mContext.getContentResolver().openInputStream(Uri.parse(file.getPath()));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    bitmap = decodeBitmapFromStream(is, width, width);
+                    Log.d(TAG,"IS： "+ is);
+                }
+
+                if(params.length == 3){
+                    cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(file.getId()), bitmap,3));
+                }else{
+                    cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(file.getId()), bitmap,1));
+                    Log.d(TAG, "doInBackground - style : "+ params.length );
+                }
+                return bitmap;
             }else{
-                cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(file.getId()), bitmap,1));
-                Log.d(TAG, "doInBackground - style : "+ params.length );
+
+                return null;
             }
+            //Log.d(TAG, "doInBackground: TIMELAP - ENTERED" );
 
 
 
-            return bitmap;
+
+            //Log.d(TAG, "doInBackground: TIMELAP - LEAVEING" );
+
         }
 
         // Once complete, see if ImageView is still around and set bitmap.
@@ -745,7 +854,6 @@ public class DataManager {
                         ItemViewHolder holder = (ItemViewHolder)viewHolderWeakRef.get();
                         holder.switchLoadState();
                     }
-
                     if(viewHolderWeakRef.get() instanceof AlbumsAdapter.ViewHolder){
                         AlbumsAdapter.ViewHolder holder = (AlbumsAdapter.ViewHolder)viewHolderWeakRef.get();
                         holder.switchLoadState();
