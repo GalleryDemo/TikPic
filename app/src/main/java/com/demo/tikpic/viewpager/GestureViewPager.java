@@ -1,33 +1,32 @@
 package com.demo.tikpic.viewpager;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewpager.widget.ViewPager;
 
-import com.demo.tikpic.MainActivity;
-
-public class NewViewPager extends ViewPager {
+public class GestureViewPager extends ViewPager {
     private static final String TAG = "NewViewPager";
 
     private int flag = 0;
     private int flagfx;
     private float x, y, lastx, lasty;
 
+    //true对手势起反应
+    static private boolean mGestureSwitch;
 
-    public NewViewPager(@NonNull Context context) {
+
+
+    public GestureViewPager(@NonNull Context context) {
         super(context);
         init();
     }
 
-    public NewViewPager(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public GestureViewPager(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
     }
@@ -46,7 +45,7 @@ public class NewViewPager extends ViewPager {
             public void onPageSelected(int position) {
                 //Log.d(TAG, "onPageSelected: " + position+"  / " +lastPos);
                 pos = position;
-                ViewPagerAdapter adapter = (ViewPagerAdapter) getAdapter();
+                GestureViewPagerAdapter adapter = (GestureViewPagerAdapter) getAdapter();
                 if (lastPos != -1) {
                     adapter.resume(lastPos);
                 } else {
@@ -65,7 +64,7 @@ public class NewViewPager extends ViewPager {
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = ev.getAction() & MotionEvent.ACTION_MASK;
 
-        if (ViewPagerFragment.mo == 0 && action == MotionEvent.ACTION_MOVE) {
+        if (mGestureSwitch && action == MotionEvent.ACTION_MOVE) {
             //需要移动的第一个瞬间
             if (flag == 0) {
                 flag = 1;
@@ -106,11 +105,15 @@ public class NewViewPager extends ViewPager {
         if (action == MotionEvent.ACTION_UP) {
             super.onTouchEvent(ev);
             super.onInterceptTouchEvent(ev);
-            ViewPagerFragment.mo = 1;
+            mGestureSwitch=false;
 
             flag = 0;
             flagfx = 0;
         }
         return super.onTouchEvent(ev);
+    }
+
+    static public void setGestureSwitchTrue(){
+        mGestureSwitch=true;
     }
 }

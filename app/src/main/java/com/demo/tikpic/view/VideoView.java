@@ -22,6 +22,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.demo.tikpic.R;
+import com.demo.tikpic.viewpager.GestureViewPager;
 import com.demo.tikpic.viewpager.ViewPagerFragment;
 
 import java.io.IOException;
@@ -105,7 +106,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
                 seekBar.setMax(mMediaPlayer.getDuration());
 
                 text_all.setText(getShowTime(mMediaPlayer.getDuration()));
-                flag_play=true;
+                flag_play = true;
 
                 thread = thr();
                 thread.start();
@@ -210,13 +211,19 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     }
 
     private String getShowTime(Integer n) {
-        String s;
+        String s = "";
         //n = n / 1000;
-        Integer nn;
+        int nn;
         nn = n / 1000 / 60;
-        s = nn.toString() + ":";
+        if (nn < 10) {
+            s += "0";
+        }
+        s += nn + ":";
         nn = n / 1000;
-        s += nn.toString();
+        if (nn < 10) {
+            s += "0";
+        }
+        s += nn;
         return s;
     }
 
@@ -224,7 +231,6 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
-
 
     private void setSize() {
         int videoWidth = mMediaPlayer.getVideoWidth();
@@ -257,8 +263,6 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
         mMediaPlayer.setSurface(surface);
         mMediaPlayer.seekTo(0);
-//        mMediaPlayer.start();
-//        mMediaPlayer.pause();
         mPlayIcon.setVisibility(VISIBLE);
     }
 
@@ -275,7 +279,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceT) {
-        flag_play=false;
+        flag_play = false;
         surfaceT = null;
         surface = null;
         mMediaPlayer.stop();
@@ -295,9 +299,6 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private InputDetector.OnInputListener mListener = new InputDetector.OnInputListener() {
         @Override
         public boolean action(int n) {
-            //Log.d(TAG, "action: " + n);
-            int num_zoomSensitivity = 0;
-            float num_moveSpeed = 1.0f;
 
             switch (n) {
                 case 4:
@@ -305,7 +306,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
                     break;
                 case 3:
                     //move
-                    ViewPagerFragment.mo = 0;
+                    GestureViewPager.setGestureSwitchTrue();
                     break;
                 case 2:
                     //zoom
@@ -321,11 +322,9 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private void onClick() {
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
-
             mPlayIcon.setVisibility(View.VISIBLE);
         } else {
             mMediaPlayer.start();
-
             mPlayIcon.setVisibility(View.INVISIBLE);
         }
     }

@@ -19,14 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ViewPagerAdapter extends PagerAdapter {
+public class GestureViewPagerAdapter extends PagerAdapter {
 
     private String TAG = "MyPagerAdapter";
     private List<MediaFile> mList;
     private Context mContext;
     private Map<Integer, View> mViewMap;
 
-    ViewPagerAdapter(Context context, List list) {
+    GestureViewPagerAdapter(Context context, List list) {
         mContext = context;
         mList = list;
         mViewMap = new HashMap<>();
