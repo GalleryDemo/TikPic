@@ -225,7 +225,7 @@ public class ImageDisplayView extends View {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
         // options.inPreferredConfig = Bitmap.Config.RGB_565;
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
         options.inSampleSize = mImage.sampleSize;
 
         Canvas middleCanvas = new Canvas(mDisplayWindow.bitmap);
@@ -356,7 +356,6 @@ public class ImageDisplayView extends View {
         mScreenSize[0] = metrics.widthPixels;
         mScreenSize[1] = metrics.heightPixels;
         //Log.d(TAG, "getWindowInfo: " + mScreenSize[0] + " / " + mScreenSize[1]);
-
     }
 
     @Override
@@ -365,7 +364,6 @@ public class ImageDisplayView extends View {
         updateLocation();
         synchronized (mDisplayWindow.bitmap){
             canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
-
         }
 
     }
@@ -618,11 +616,17 @@ public class ImageDisplayView extends View {
     }
 
     public void destroy() {
-        mCachedThreadPool.shutdown();
-        mDisplayWindow.bitmap.recycle();
-        mDisplayWindow.bitmap = null;
-        mImage.resource.recycle();
-        mImage.resource = null;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mCachedThreadPool.shutdown();
+                mDisplayWindow.bitmap.recycle();
+                mDisplayWindow.bitmap = null;
+                mImage.resource.recycle();
+                mImage.resource = null;
+            }
+        }).start();
+
     }
 
 }
