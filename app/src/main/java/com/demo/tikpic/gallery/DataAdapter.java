@@ -16,6 +16,7 @@ import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -93,8 +94,9 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
         if(holder.isLoading()) {
             holder.switchLoadState();
-            Log.d(TAG, "onViewRecycled: loading state switched");
+            Log.d(TAG, "onViewRecycled: loading state switched" + ((AsyncTask)holder.mImageView.getTag()));
             ((AsyncTask) holder.mImageView.getTag()).cancel(true);
+            Log.d(TAG, "onViewRecycled: loading state switched " + ((AsyncTask)holder.mImageView.getTag()).isCancelled());
 
         }
     }
@@ -126,6 +128,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             rootView = view;
             mImageView = itemView.findViewById(R.id.itemImageView);
             mVideoIconImageView = itemView.findViewById(R.id.videoPlaybackIcon);
+
 
         }
 

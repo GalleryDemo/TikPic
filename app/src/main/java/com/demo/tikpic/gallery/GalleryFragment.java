@@ -87,8 +87,7 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
         //recyclerView.setItemViewCacheSize(30);
         recyclerView.hasFixedSize();
         recyclerView.setNestedScrollingEnabled(false);
-
-        recyclerView.setItemViewCacheSize(60);
+        recyclerView.setItemViewCacheSize(5);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 

@@ -485,25 +485,18 @@ public class DataManager {
             Log.d(TAG, "loadBitmap: ID " + idKey + " memory hit");
         }
         else { // // check if bitmap is cached in disk
+            if(!viewHolder.isLoading()) {
+                // change viewholder's loading state from false to true
+                viewHolder.switchLoadState();
+                BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
+                imageView.setTag(workerTask);
 
-            bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
-            Log.d(TAG, "loadBitmap - Bitmap: "+ bitmap);
-            if (bitmap != null) {
-                imageView.setImageBitmap(bitmap);
-                memoryCache.put(String.valueOf(idKey), bitmap);
-                Log.d(TAG, "loadBitmap: ID " + idKey + " disk hit");
+                workerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, position, thumbNailWidth);
+                // workerTask.execute(position, mediaType);
+                Log.d(TAG, "loadBitmap: ID " + idKey + " miss, reading asynchronously");
             }
             else {
-                if(!viewHolder.isLoading()) {
-                    // change viewholder's loading state from false to true
-                    viewHolder.switchLoadState();
-                    BitmapWorkerTask workerTask = new BitmapWorkerTask(viewHolder);
-                    imageView.setTag(workerTask);
 
-                    workerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, position, thumbNailWidth);
-                    // workerTask.execute(position, mediaType);
-                    Log.d(TAG, "loadBitmap: ID " + idKey + " miss, reading asynchronously");
-                }
             }
         }
     }
@@ -603,7 +596,32 @@ public class DataManager {
 
         return new File(cachePath + File.separator + uniqueName);
     }
+    private Bitmap getBitmapFromDiskCache(String key) {
 
+        synchronized (diskCacheLock) {
+            // Wait while disk cache is started from background thread
+            while (diskCacheStarting) {
+                try {
+                    diskCacheLock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (diskLruCache != null) {
+                try {
+                    DiskLruCache.Value value = diskLruCache.get(key);
+                    if(value != null) {
+                        String encodedBitmap = value.getString(0);
+                        byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
+                        return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
     private static void addBitmapToCache(String key, Bitmap bitmap,int style) {
         if(style == 1){
             // Add to memory cache
@@ -683,32 +701,7 @@ public class DataManager {
         }
     }
 
-    private Bitmap getBitmapFromDiskCache(String key) {
 
-        synchronized (diskCacheLock) {
-            // Wait while disk cache is started from background thread
-            while (diskCacheStarting) {
-                try {
-                    diskCacheLock.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (diskLruCache != null) {
-                try {
-                    DiskLruCache.Value value = diskLruCache.get(key);
-                    if(value != null) {
-                        String encodedBitmap = value.getString(0);
-                        byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
-                        return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return null;
-    }
 
     static class InitDiskCacheTask extends AsyncTask<File, Void, Void> {
         @Override
@@ -739,7 +732,7 @@ public class DataManager {
 
 
         BitmapWorkerTask(DataAdapter.ViewHolder viewHolder) {
-
+            cancelled = isCancelled();
             viewHolderWeakRef = new WeakReference<>(viewHolder);
             imageViewWeakRef = new WeakReference<>(viewHolder.mImageView);
         }
@@ -761,13 +754,58 @@ public class DataManager {
 
         @Override
         protected Bitmap doInBackground(Integer... params) {
-            cancelled = isCancelled();
 
-            if(!cancelled){
+
+            Log.d(TAG, "doInBackground: Cancelled : " + this.isCancelled());
+
+            while(!this.isCancelled() ){
                 int position = params[0];
                 int width;
                 MediaFile file;
 
+                String key = String.valueOf(allItemList.get(position).getId());
+
+                synchronized (diskCacheLock) {
+                    // Wait while disk cache is started from background thread
+                    while (diskCacheStarting) {
+                        try {
+                            diskCacheLock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(isCancelled()){
+                        break;
+                    }
+                    if (diskLruCache != null) {
+                        try {
+                            DiskLruCache.Value value = diskLruCache.get(key);
+                            if(isCancelled()){
+                                break;
+                            }
+                            if(value != null) {
+                                String encodedBitmap = value.getString(0);
+                                byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
+                                return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+//                Bitmap bitmapInCache = inDiskCache(key);
+//                if(bitmapInCache != null){
+//                    //if found bitmap, return.
+//                    return bitmapInCache;
+//                }else{
+//                    //else check if the task is cancelled.
+//                     if(isCancelled()){
+//                         break;
+//                     }
+//                }
+
+                Log.d(TAG, "doInBackground: Cancelled : " + this.isCancelled());
                 //means we are decoding a bitmap for album cover, which needs higher quality.
                 if(params.length == 3){
                     width = params[2];
@@ -782,23 +820,24 @@ public class DataManager {
                     width =  params[1];
                     file = allItemList.get(position);
                 }
-
-
-                //String path = imageUrlList.get(position);
-
+                if(isCancelled()){
+                    break;
+                }
                 final Bitmap bitmap;
-
                 Log.d(TAG, "doInBackground: Thread Name: "+ Thread.currentThread());
                 // Video
                 if(file.getType() == 3) {
                     MediaMetadataRetriever retriever = new MediaMetadataRetriever();
                     retriever.setDataSource(mContext, Uri.parse(file.getPath()));
                     bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-                    cancelled = isCancelled();
+                    isCancelled();
                 }
                 // Image
                 else {
-                    cancelled = isCancelled();
+                    Log.d(TAG, "doInBackground: Cancelled : " + this.isCancelled());
+                    if(isCancelled()){
+                        break;
+                    }
                     try {
                         is = mContext.getContentResolver().openInputStream(Uri.parse(file.getPath()));
                     } catch (FileNotFoundException e) {
@@ -808,7 +847,9 @@ public class DataManager {
                     bitmap = decodeBitmapFromStream(is, width, width);
                     Log.d(TAG,"IS： "+ is);
                 }
-
+                if(isCancelled()){
+                    break;
+                }
                 if(params.length == 3){
                     cachedThreadPool.submit(() -> addBitmapToCache(String.valueOf(file.getId()), bitmap,3));
                 }else{
@@ -816,14 +857,15 @@ public class DataManager {
                     Log.d(TAG, "doInBackground - style : "+ params.length );
                 }
                 return bitmap;
-            }else{
-
-                return null;
             }
-            //Log.d(TAG, "doInBackground: TIMELAP - ENTERED" );
 
+            if(this.isCancelled()){
+                Log.d(TAG, "doInBackground: Cancelled: " + Thread.currentThread());
+            }
 
+            Log.d(TAG, "doInBackground: Cancelled : " + this.isCancelled());
 
+            return null;
 
             //Log.d(TAG, "doInBackground: TIMELAP - LEAVEING" );
 
@@ -844,6 +886,7 @@ public class DataManager {
             if (bitmap != null && imageViewWeakRef != null) {
                 final ImageView imageView = imageViewWeakRef.get();
 
+
                 if(imageView != null) {
                     imageView.setImageBitmap(bitmap);
                     if(viewHolderWeakRef.get() instanceof DataAdapter.ViewHolder){
@@ -862,6 +905,46 @@ public class DataManager {
 
                 }
             }
+        }
+
+        private Bitmap inDiskCache(String idKey){
+            Bitmap bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
+
+            Log.d(TAG, "loadBitmap - Bitmap: "+ bitmap);
+            if ( bitmap != null) {
+
+                memoryCache.put(String.valueOf(idKey), bitmap);
+                Log.d(TAG, "loadBitmap: ID " + idKey + " disk hit");
+                return bitmap;
+            }
+            return null;
+        }
+
+        private Bitmap getBitmapFromDiskCache(String key) {
+
+            synchronized (diskCacheLock) {
+                // Wait while disk cache is started from background thread
+                while (diskCacheStarting) {
+                    try {
+                        diskCacheLock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (diskLruCache != null) {
+                    try {
+                        DiskLruCache.Value value = diskLruCache.get(key);
+                        if(value != null) {
+                            String encodedBitmap = value.getString(0);
+                            byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
+                            return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
         }
 
         private Bitmap decodeBitmapFromStream(InputStream is, int reqWidth, int reqHeight) {
