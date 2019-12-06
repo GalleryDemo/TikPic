@@ -78,7 +78,8 @@ public class ImageDisplayView extends View {
                     break;
                 case 2:
                     double newDist = mInputDetector.distance;
-                    imageZoom(((float) newDist + num_zoomSensitivity) / ((float) mInputDetector.lastDist + num_zoomSensitivity), mInputDetector.middle);
+                    imageZoom(((float) newDist + num_zoomSensitivity) / ((float) mInputDetector.lastDist
+                            + num_zoomSensitivity), mInputDetector.middle);
                     imageMove(mInputDetector.dx * num_moveSpeed, mInputDetector.dy * num_moveSpeed);
                     mInputDetector.lastDist = newDist;
                     mStateMoveZoom = 1;
@@ -188,12 +189,14 @@ public class ImageDisplayView extends View {
             }
         }
 
-        if (mDisplayWindow.lastSize[0] == mDisplayWindow.size[0] && mDisplayWindow.lastSize[1] == mDisplayWindow.size[1]) {
+        if (mDisplayWindow.lastSize[0] == mDisplayWindow.size[0] &&
+                mDisplayWindow.lastSize[1] == mDisplayWindow.size[1]) {
             return false;
         } else {
             // Log.d(TAG, "setSize: displaysize   " + mDisplayWindow.size[0] + "   /   " + mDisplayWindow.size[1]);
             //Log.d(TAG, "updatewindowSize: adaptBlockSize" + mImage.adaptBlockSize[0]);
-            mDisplayWindow.bitmap = Bitmap.createBitmap(mImage.basicBlockSize[0] * mDisplayWindow.size[0], mImage.basicBlockSize[1] * mDisplayWindow.size[1], Bitmap.Config.RGB_565);
+            mDisplayWindow.bitmap = Bitmap.createBitmap(mImage.basicBlockSize[0] * mDisplayWindow.size[0],
+                    mImage.basicBlockSize[1] * mDisplayWindow.size[1], Bitmap.Config.RGB_565);
 
             blockState.clear();
 
@@ -203,7 +206,7 @@ public class ImageDisplayView extends View {
     }
 
     public void setUri(Uri uri) {
-        id=uri.hashCode();
+        id = uri.hashCode();
         mImage = new ImageResource(uri);
         //Log.d(TAG, "setUri: " + uri.getPath());
         mDisplayWindow = new DisplayWindow();
@@ -244,10 +247,10 @@ public class ImageDisplayView extends View {
         for (int i = mDisplayWindow.posion[0], ni = 0; ni < mDisplayWindow.size[0]; i++, ni++) {
             for (int j = mDisplayWindow.posion[1], nj = 0; nj < mDisplayWindow.size[1]; j++, nj++) {
 
-                final String key = id +"_"+ mImage.sampleSize + "/" + i + "/" + j;
+                final String key = id + "_" + mImage.sampleSize + "/" + i + "/" + j;
 
-                if (blockState.containsKey(id +"_"+ mImage.sampleSize + "//" + ni + "/" + nj)) {
-                    if (blockState.get(id +"_"+ mImage.sampleSize + "//" + ni + "/" + nj).compareTo(key) == 0) {
+                if (blockState.containsKey(id + "_" + mImage.sampleSize + "//" + ni + "/" + nj)) {
+                    if (blockState.get(id + "_" + mImage.sampleSize + "//" + ni + "/" + nj).compareTo(key) == 0) {
                         continue;
                     }
                 }
@@ -256,9 +259,10 @@ public class ImageDisplayView extends View {
                 Bitmap blockBitmap = mLoader.getBitmap(key);
                 String key2 = "";
                 if (blockBitmap == null) {
-                    Log.d(TAG, "block: "+key+"  块不存在");
-                    for (int k = mImage.sampleSize * 2, l = 2; k <= caculateSampleSize(caculateRatio(), mImage.sampleSize); k *= 2, l *= 2) {
-                        key2 = id+"_" + k + "/" + (i / l) + "/" + (j / l);
+                    Log.d(TAG, "block: " + key + "  块不存在");
+                    for (int k = mImage.sampleSize * 2, l = 2; k <= caculateSampleSize(caculateRatio(),
+                            mImage.sampleSize); k *= 2, l *= 2) {
+                        key2 = id + "_" + k + "/" + (i / l) + "/" + (j / l);
                         blockBitmap = mLoader.getBitmap(key2);
                         if (blockBitmap != null) {
                             //Log.d(TAG, "block: k222222 "+key2);
@@ -269,9 +273,12 @@ public class ImageDisplayView extends View {
                             int blocksize = mImage.adaptBlockSize[0] / l;
 //                            Log.d(TAG, "block:   xx  " + (k / mImage.sampleSize) + "  blocksize   " + blocksize);
 //                            Log.d(TAG, "block:   rect   " + ((i % l) * blocksize) + "//" + ((j % l) * blocksize) );
-                            int w = (i % l + 1) * blocksize > blockBitmap.getWidth() ? blockBitmap.getWidth() - (i % l) * blocksize : blocksize;
-                            int h = (j % l + 1) * blocksize > blockBitmap.getHeight() ? blockBitmap.getHeight() - (j % l) * blocksize : blocksize;
-                            blockBitmap = Bitmap.createBitmap(blockBitmap, (i % l) * blocksize, (j % l) * blocksize, w, h, xx, false);
+                            int w = (i % l + 1) * blocksize > blockBitmap.getWidth() ?
+                                    blockBitmap.getWidth() - (i % l) * blocksize : blocksize;
+                            int h = (j % l + 1) * blocksize > blockBitmap.getHeight() ?
+                                    blockBitmap.getHeight() - (j % l) * blocksize : blocksize;
+                            blockBitmap = Bitmap.createBitmap(blockBitmap, (i % l) * blocksize,
+                                    (j % l) * blocksize, w, h, xx, false);
                             break;
                         }
                     }
@@ -286,20 +293,24 @@ public class ImageDisplayView extends View {
                         mCachedThreadPool.execute(new Runnable() {
                             @Override
                             public void run() {
-                                int thisWidth = (ii == mImage.numBlocks[0]) ? mImage.edgeBlockLength[0] : mImage.adaptBlockSize[0];
-                                int thisHeight = (jj == mImage.numBlocks[1]) ? mImage.edgeBlockLength[1] : mImage.adaptBlockSize[1];
+                                int thisWidth = (ii == mImage.numBlocks[0]) ? mImage.edgeBlockLength[0] :
+                                        mImage.adaptBlockSize[0];
+                                int thisHeight = (jj == mImage.numBlocks[1]) ? mImage.edgeBlockLength[1] :
+                                        mImage.adaptBlockSize[1];
                                 int rectLeft = ii * mImage.adaptBlockSize[0];
                                 int rectTop = jj * mImage.adaptBlockSize[1];
-                                if (rectLeft + thisWidth > mImage.imageSize[0] || rectTop + thisHeight > mImage.imageSize[1]) {
+                                if (rectLeft + thisWidth > mImage.imageSize[0] || rectTop + thisHeight >
+                                        mImage.imageSize[1]) {
                                     return;
                                 } else {
-                                    Rect blockRect = new Rect(rectLeft, rectTop, rectLeft + thisWidth, rectTop + thisHeight);
+                                    Rect blockRect = new Rect(rectLeft, rectTop, rectLeft + thisWidth,
+                                            rectTop + thisHeight);
                                     //   long begin = System.currentTimeMillis();
 
                                     Bitmap blockBitmap = mImage.resource.decodeRegion(blockRect, options);
 //                                    Log.d(TAG, "run: " + thisWidth + "  // " + thisHeight);
-                                   // Log.d(TAG, "run: memmmmmmmmm" + (float) blockBitmap.getByteCount() / 1024 / 1024);
-                                   // Log.d(TAG, "run: block  " + blockBitmap.getWidth() + ":hhhhhh" + blockBitmap.getHeight());
+                                    // Log.d(TAG, "run: memmmmmmmmm" + (float) blockBitmap.getByteCount() / 1024 / 1024);
+                                    // Log.d(TAG, "run: block  " + blockBitmap.getWidth() + ":hhhhhh" + blockBitmap.getHeight());
                                     // long end = System.currentTimeMillis();
                                     //Log.d(TAG, "run: "+key+"  time :"+(end-begin));
                                     mLoader.addBitmap(key, blockBitmap);
@@ -317,9 +328,9 @@ public class ImageDisplayView extends View {
                 final int rectTop = nj * mImage.adaptBlockSize[1] / mImage.sampleSize;
                 if (blockBitmap != null) {
                     if (key2 == "") {
-                        blockState.put(id +"_"+ mImage.sampleSize + "//" + ni + "/" + nj, key);
-                    }else{
-                       // Log.d(TAG, "block: "+key+"/"+key2);
+                        blockState.put(id + "_" + mImage.sampleSize + "//" + ni + "/" + nj, key);
+                    } else {
+                        // Log.d(TAG, "block: "+key+"/"+key2);
                     }
 
                     //  long begin = System.currentTimeMillis();
@@ -335,7 +346,7 @@ public class ImageDisplayView extends View {
 //                            invalidate();
 //                        }
 //                    }).start();
-                    synchronized (mDisplayWindow.bitmap){
+                    synchronized (mDisplayWindow.bitmap) {
                         middleCanvas.drawBitmap(xx, rectLeft, rectTop, null);
                     }
                     invalidate();
@@ -362,7 +373,7 @@ public class ImageDisplayView extends View {
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(mColor);
         updateLocation();
-        synchronized (mDisplayWindow.bitmap){
+        synchronized (mDisplayWindow.bitmap) {
             canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
         }
 
@@ -429,7 +440,8 @@ public class ImageDisplayView extends View {
     private int caculateSampleSize(float scale, int sampleSize) {
         boolean flag = true;
         while (flag) {
-            if (scale <= 1 / (float) (2 * sampleSize) && mImage.basicBlockSize[0] * sampleSize <= mImage.imageSize[0] && mImage.basicBlockSize[1] * sampleSize < mImage.imageSize[1]) {
+            if (scale <= 1 / (float) (2 * sampleSize) && mImage.basicBlockSize[0] * sampleSize <=
+                    mImage.imageSize[0] && mImage.basicBlockSize[1] * sampleSize < mImage.imageSize[1]) {
                 sampleSize *= 2;
 
             } else if (scale >= 1 / (float) (2 * (sampleSize / 2))) {
@@ -490,8 +502,10 @@ public class ImageDisplayView extends View {
 
         mScale = newMatrixScale;
 
-        float nleft = ((point.x - mMatrixTranslate[0] + mDisplayWindow.posion[0] * mImage.adaptBlockSize[0]) / (mImage.imageSize[0] * mScale)) * mImage.imageSize[0] * mScale * x - point.x;
-        float ntop = ((point.y - mMatrixTranslate[1] + mDisplayWindow.posion[1] * mImage.adaptBlockSize[1]) / (mImage.imageSize[1] * mScale)) * mImage.imageSize[1] * mScale * x - point.y;
+        float nleft = ((point.x - mMatrixTranslate[0] + mDisplayWindow.posion[0] * mImage.adaptBlockSize[0]) /
+                (mImage.imageSize[0] * mScale)) * mImage.imageSize[0] * mScale * x - point.x;
+        float ntop = ((point.y - mMatrixTranslate[1] + mDisplayWindow.posion[1] * mImage.adaptBlockSize[1]) /
+                (mImage.imageSize[1] * mScale)) * mImage.imageSize[1] * mScale * x - point.y;
 
         float dx = -nleft - mMatrixTranslate[0];
         float dy = -ntop - mMatrixTranslate[1];
@@ -499,6 +513,7 @@ public class ImageDisplayView extends View {
 //        setTranslate(dxy[0], dxy[1]);
         imageMove(dx, dy);
         invalidate();
+        Log.d(TAG, "imageZoom: "+mScale);
     }
 
     private void imageMove(float dx, float dy) {
@@ -508,7 +523,8 @@ public class ImageDisplayView extends View {
         //x轴偏移超过一格
         boolean isBlockChanged = false;
         for (int i = 0; i < 2; i++) {
-            while (((-mMatrixTranslate[i] - dxy[i] - transXY[i] + mScreenSize[i]) / (mMatrixScale / mImage.sampleSize) > mDisplayWindow.size[i] * mImage.adaptBlockSize[i]) &&
+            while (((-mMatrixTranslate[i] - dxy[i] - transXY[i] + mScreenSize[i]) / (mMatrixScale / mImage.sampleSize) >
+                    mDisplayWindow.size[i] * mImage.adaptBlockSize[i]) &&
                     (mDisplayWindow.posion[i] <= mImage.numBlocks[i] - mDisplayWindow.size[i])) {
                 mDisplayWindow.posion[i]++;
                 transXY[i] += mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize);
@@ -580,7 +596,8 @@ public class ImageDisplayView extends View {
             //移动到右下边缘时阻止
             if (mScreenSize[i] >= mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize)) {
                 //Log.d(TAG, "caculateBoundary: " + mMatrixTranslate[i]);
-                dxy[i] = (mScreenSize[i] - (mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize))) / 2 - mMatrixTranslate[i];
+                dxy[i] = (mScreenSize[i] - (mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize))) / 2 -
+                        mMatrixTranslate[i];
                 if (i == 0 && Math.abs(dx) > 0.01f) {
                     flag = 0;
                 }
@@ -589,16 +606,19 @@ public class ImageDisplayView extends View {
                 if (i == 0 && Math.abs(dx) > 0.01f) {
                     flag = 0;
                 }
-            } else if (-mMatrixTranslate[i] + mScreenSize[i] + mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize) > mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize) ||
-                    -mMatrixTranslate[i] + mScreenSize[i] - dxy[i] + mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize) > mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize)) {
-                dxy[i] = mScreenSize[i] - (mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize) - mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize)) - mMatrixTranslate[i];
+            } else if (-mMatrixTranslate[i] + mScreenSize[i] + mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] *
+                    (mMatrixScale / mImage.sampleSize) > mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize) ||
+                    -mMatrixTranslate[i] + mScreenSize[i] - dxy[i] + mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] *
+                            (mMatrixScale / mImage.sampleSize) > mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize)) {
+                dxy[i] = mScreenSize[i] - (mImage.imageSize[i] * (mMatrixScale / mImage.sampleSize) -
+                        mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * (mMatrixScale / mImage.sampleSize)) - mMatrixTranslate[i];
                 if (i == 0 && Math.abs(dx) > 0.01f) {
                     flag = 0;
                 }
             }
         }
 
-        if (mStateMoveZoom == 1&&flag==0) {
+        if (mStateMoveZoom == 1 && flag == 0) {
             GestureViewPager.setGestureSwitchTrue();
         }
 
