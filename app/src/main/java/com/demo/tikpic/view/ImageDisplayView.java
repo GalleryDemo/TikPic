@@ -114,7 +114,6 @@ public class ImageDisplayView extends View {
             setBasicBlockSize(1024);
             //小图直接加载的功能
             if (imageSize[0] <= 3 * basicBlockSize[0] && imageSize[1] < 3 * basicBlockSize[1]) {
-                Log.d(TAG, "ImageResource: xxxxxxxxxxxxxxxxxx");
                 setBasicBlockSize(imageSize[0] > imageSize[1] ? imageSize[0] : imageSize[1]);
             }
         }
@@ -263,7 +262,9 @@ public class ImageDisplayView extends View {
                     for (int k = mImage.sampleSize * 2, l = 2; k <= caculateSampleSize(caculateRatio(),
                             mImage.sampleSize); k *= 2, l *= 2) {
                         key2 = id + "_" + k + "/" + (i / l) + "/" + (j / l);
+
                         blockBitmap = mLoader.getBitmap(key2);
+
                         if (blockBitmap != null) {
                             //Log.d(TAG, "block: k222222 "+key2);
 //                            Log.d(TAG, "block: blockBitmap.getWidth" + blockBitmap.getWidth() + "   blockBitmap.getHeight  " + blockBitmap.getHeight());
@@ -330,32 +331,24 @@ public class ImageDisplayView extends View {
                     if (key2 == "") {
                         blockState.put(id + "_" + mImage.sampleSize + "//" + ni + "/" + nj, key);
                     } else {
-                        // Log.d(TAG, "block: "+key+"/"+key2);
+
                     }
 
-                    //  long begin = System.currentTimeMillis();
                     final Bitmap xx = blockBitmap;
 
 
-//                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            synchronized (this) {
-//                                middleCanvas.drawBitmap(xx, rectLeft, rectTop, null);
-//                            }
-//                            invalidate();
-//                        }
-//                    }).start();
-                    synchronized (mDisplayWindow.bitmap) {
-                        middleCanvas.drawBitmap(xx, rectLeft, rectTop, null);
-                    }
-                    invalidate();
-
-                    // long end = System.currentTimeMillis();
-                    //   Log.d(TAG, "run: " + key + "  time :" + (end - begin));
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            middleCanvas.drawBitmap(xx, rectLeft, rectTop, null);
+                            flag_com = true;
+                            invalidate();
+                        }
+                    }).start();
                 }
             }
         }
+
     }
 
     private void getWindowInfo() {
@@ -369,11 +362,13 @@ public class ImageDisplayView extends View {
         //Log.d(TAG, "getWindowInfo: " + mScreenSize[0] + " / " + mScreenSize[1]);
     }
 
+    boolean flag_com = false;
+
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(mColor);
         updateLocation();
-        synchronized (mDisplayWindow.bitmap) {
+        if (flag_com) {
             canvas.drawBitmap(mDisplayWindow.bitmap, mMatrix, null);
         }
 
@@ -460,7 +455,6 @@ public class ImageDisplayView extends View {
     private void imageZoom(float x, Point point) {
 
         float newMatrixScale = mScale * x;
-
         //问题代码
         if (mScaleLimit == 1) {
             if (caculateRatio() <= 1.0f) {
@@ -509,11 +503,10 @@ public class ImageDisplayView extends View {
 
         float dx = -nleft - mMatrixTranslate[0];
         float dy = -ntop - mMatrixTranslate[1];
-//        float[] dxy = caculateBoundary(dx, dy);
-//        setTranslate(dxy[0], dxy[1]);
+
         imageMove(dx, dy);
         invalidate();
-        Log.d(TAG, "imageZoom: "+mScale);
+
     }
 
     private void imageMove(float dx, float dy) {

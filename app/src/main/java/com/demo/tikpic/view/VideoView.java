@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
@@ -27,8 +28,11 @@ import com.demo.tikpic.viewpager.ViewPagerFragment;
 
 import java.io.IOException;
 
+import static androidx.constraintlayout.widget.Constraints.TAG;
+
 public class VideoView extends RelativeLayout implements TextureView.SurfaceTextureListener {
 
+    String TAG = "VideoView";
     //	private TextureView textureView;
     private MediaPlayer mMediaPlayer;
     private Surface surface;
@@ -43,6 +47,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private Thread thread;
     private int CurrentPosition;
     private boolean flag_play;
+    float scale = 1.0f;
+    int videoWidth, videoHeight;
 
     private Thread thr() {
         return new Thread() {
@@ -122,7 +128,26 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
         mMediaPlayer.prepare();
         getWindewSize();
-        setSize();
+
+        videoWidth = mMediaPlayer.getVideoWidth();
+        videoHeight = mMediaPlayer.getVideoHeight();
+
+        float ww = 1.0f;
+        if (screenHight < videoHeight || screenWidth < videoWidth) {
+            ww = (float) screenWidth / (float) videoWidth;
+            float hh = (float) screenHight / (float) videoHeight;
+            if (ww > hh) {
+                ww = hh;
+            }
+        } else if (screenHight > videoHeight && screenWidth > videoWidth) {
+            ww = (float) screenWidth / (float) videoWidth;
+            float hh = (float) screenHight / (float) videoHeight;
+            if (ww > hh) {
+                ww = hh;
+            }
+        }
+
+        setSize(ww);
     }
 
     private void getWindewSize() {
@@ -232,27 +257,11 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         return (int) (dpValue * scale + 0.5f);
     }
 
-    private void setSize() {
-        int videoWidth = mMediaPlayer.getVideoWidth();
-        int videoHeight = mMediaPlayer.getVideoHeight();
-
-
-        float ww = 1.0f;
-        if (screenHight < videoHeight || screenWidth < videoWidth) {
-            ww = (float) screenWidth / (float) videoWidth;
-            float hh = (float) screenHight / (float) videoHeight;
-            if (ww > hh) {
-                ww = hh;
-            }
-        } else if (screenHight > videoHeight && screenWidth > videoWidth) {
-            ww = (float) screenWidth / (float) videoWidth;
-            float hh = (float) screenHight / (float) videoHeight;
-            if (ww > hh) {
-                ww = hh;
-            }
-        }
-        int w = (int) (videoWidth * ww);
-        int h = (int) (videoHeight * ww);
+    private void setSize(float x) {
+        scale *= x;
+        int w = (int) (videoWidth * scale);
+        int h = (int) (videoHeight * scale);
+        Log.d(TAG, "setSize: "+w+"  /  "+h);
         LayoutParams layoutParams = new LayoutParams(w, h);
         //layoutParams.setMargins((screenWidth-w)/2,(screenHight-h)/2,screenWidth-(screenWidth-w)/2,screenHight-(screenHight-h)/2);
         layoutParams.setMargins((screenWidth - w) / 2, (screenHight - h) / 2, 0, 0);
@@ -310,6 +319,9 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
                     break;
                 case 2:
                     //zoom
+                    double newDist = mInputDetector.distance;
+                    setSize(((float) newDist) / ((float) mInputDetector.lastDist));
+                    mInputDetector.lastDist = newDist;
                     break;
 
                 default:
