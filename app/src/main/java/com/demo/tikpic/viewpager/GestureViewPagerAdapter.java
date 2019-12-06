@@ -3,12 +3,14 @@ package com.demo.tikpic.viewpager;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 
+import com.demo.tikpic.R;
 import com.demo.tikpic.itemClass.MediaFile;
 import com.demo.tikpic.view.ImageDisplayView;
 import com.demo.tikpic.view.VideoView;
@@ -17,14 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ViewPagerAdapter extends PagerAdapter {
+public class GestureViewPagerAdapter extends PagerAdapter {
 
     private String TAG = "MyPagerAdapter";
     private List<MediaFile> mList;
     private Context mContext;
     private Map<Integer, View> mViewMap;
 
-    ViewPagerAdapter(Context context, List list) {
+    GestureViewPagerAdapter(Context context, List list) {
         mContext = context;
         mList = list;
         mViewMap = new HashMap<>();

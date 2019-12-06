@@ -189,7 +189,7 @@ public class NewVideoFragment extends Fragment {
                     @Override
                     public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
 
-                        // adjust the size of textureView to fit the video
+                        // adjust the size of textureView to fit the video_toolbar
 
                         float textureWidth = (float) mTextureView.getWidth();
                         float textureHeight = (float) mTextureView.getHeight();

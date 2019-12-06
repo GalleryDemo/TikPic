@@ -88,9 +88,9 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
         recyclerView.hasFixedSize();
         recyclerView.setNestedScrollingEnabled(false);
 
-//        recyclerView.setItemViewCacheSize(20);
-//        recyclerView.setDrawingCacheEnabled(true);
-//        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(60);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(hostActivity, 3);

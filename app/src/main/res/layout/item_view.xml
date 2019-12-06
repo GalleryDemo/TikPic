@@ -27,7 +27,7 @@
             android:id="@+id/videoPlaybackIcon"
             android:layout_width="35dp"
             android:layout_height="35dp"
-            android:src="@drawable/video_icon_tiny"
+            android:src="@drawable/video_icon_normal"
 
             android:layout_gravity="center"
             android:visibility="gone"/>

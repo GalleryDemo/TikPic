@@ -102,12 +102,12 @@ public class ViewPagerActivity extends FragmentActivity {
     private class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
         private SparseArray<Fragment> fragmentArray;
-        private static final String TAG = "ViewPagerAdapter";
+        private static final String TAG = "GestureViewPagerAdapter";
 
         ViewPagerAdapter(FragmentManager fm) {
             super(fm);
             fragmentArray = new SparseArray<>(getCount());
-            Log.d(TAG, "ViewPagerAdapter: " + allFiles.size());
+            Log.d(TAG, "GestureViewPagerAdapter: " + allFiles.size());
         }
 
         @NonNull

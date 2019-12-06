@@ -25,8 +25,6 @@ public class ViewPagerFragment extends Fragment {
     private Context mContext;
     private MainActivity mActivity;
 
-    static public int mo = 1;
-
     private int gallryIndex = -1, albumIndex = -1, itemIndex = -1;
 
     @Override
@@ -57,11 +55,11 @@ public class ViewPagerFragment extends Fragment {
             Toast.makeText(getContext(), "没有坐标", Toast.LENGTH_LONG).show();
             return null;
         } else {
-            NewViewPager view = new NewViewPager(mContext);
+            GestureViewPager view = new GestureViewPager(mContext);
             view.setBackgroundColor(getResources().getColor(R.color.black));
             view.setPageMargin((int)getResources().getDimensionPixelOffset(R.dimen.page_margen));
             List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
-            ViewPagerAdapter mAdapter = new ViewPagerAdapter(mContext, list);
+            GestureViewPagerAdapter mAdapter = new GestureViewPagerAdapter(mContext, list);
             view.setAdapter(mAdapter);
             view.setCurrentItem(itemIndex);
             return view;
