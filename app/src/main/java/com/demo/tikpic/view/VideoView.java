@@ -57,7 +57,6 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
                 //super.run();
                 while (flag_play) {
                     if (CurrentPosition != mMediaPlayer.getCurrentPosition()) {
-
                         CurrentPosition = mMediaPlayer.getCurrentPosition();
                         seekBar.setProgress(CurrentPosition);
 
