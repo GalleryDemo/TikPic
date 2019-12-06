@@ -75,7 +75,6 @@ public class GalleryFragment extends Fragment implements DataAdapter.ClickListen
         mWindowManager.getDefaultDisplay().getMetrics(metrics);
 
         mScreenWidth = metrics.widthPixels;
-
         int itemWidth = mScreenWidth/4;
 
 

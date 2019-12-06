@@ -74,7 +74,9 @@ public class DataManager {
     //all media files are stored in this list.
     private static List<MediaFile> allItemList;
     private List<String> imagePaths;
-    private Map<String, List<Integer>> albumMap;
+    //private Map<String, List<Integer>> albumMap;
+    private List<MediaAlbum> dateAlbum;
+    private List<MediaAlbum> singleAlbumShowCase;
 
 
     private static Context mContext;
@@ -97,52 +99,6 @@ public class DataManager {
 
     private static ExecutorService cachedThreadPool;
 
-    static final Executor THREAD_POOL_EXECUTOR1;
-    private static final int CORE_POOL_SIZE =  1;
-    private static final int MAXIMUM_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2 +1;
-    private static final int BACKUP_POOL_SIZE = 5;
-    private static final int KEEP_ALIVE_SECONDS = 1;
-
-    private static BlockingQueue<Runnable> queue = new LinkedBlockingDeque<Runnable>();
-    private static SynchronousQueue<Runnable> sQueue = new SynchronousQueue<>(false);
-    private static ThreadPoolExecutor sBackupExecutor;
-    private static LinkedBlockingQueue<Runnable> sBackupExecutorQueue;
-
-
-    private static final RejectedExecutionHandler sRunOnSerialPolicy =
-            new RejectedExecutionHandler() {
-                public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-                    // As a last ditch fallback, run it on an executor with an unbounded queue.
-                    // Create this executor lazily, hopefully almost never.
-                    synchronized (this) {
-                        if (sBackupExecutor == null) {
-                            sBackupExecutorQueue = new LinkedBlockingQueue<Runnable>();
-                            sBackupExecutor = new ThreadPoolExecutor(
-                                    BACKUP_POOL_SIZE, BACKUP_POOL_SIZE, KEEP_ALIVE_SECONDS,
-                                    TimeUnit.SECONDS, sBackupExecutorQueue, sThreadFactory);
-                            sBackupExecutor.allowCoreThreadTimeOut(true);
-                            sBackupExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
-                        }
-                    }
-                    sBackupExecutor.execute(r);
-                }
-            };
-
-    private static final ThreadFactory sThreadFactory = new ThreadFactory() {
-        private final AtomicInteger mCount = new AtomicInteger(1);
-
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "AsyncTask #" + mCount.getAndIncrement());
-        }
-    };
-    static {
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_SECONDS, TimeUnit.SECONDS,
-                sQueue, sThreadFactory);
-        threadPoolExecutor.setRejectedExecutionHandler(sRunOnSerialPolicy);
-        THREAD_POOL_EXECUTOR1 = threadPoolExecutor;
-
-    }
 
     private DataManager(Context context) {
         mContext = context.getApplicationContext();
@@ -150,12 +106,14 @@ public class DataManager {
         GalleryShowCaseList = new ArrayList<>();
         currentShowCase = new ArrayList<>();
         imagePaths = new ArrayList<>();
-        albumMap = new LinkedHashMap<>();
+        dateAlbum = new ArrayList<>();
+        //albumMap = new LinkedHashMap<>();
+        singleAlbumShowCase = new ArrayList<>();
+
         GalleryShowCaseList.add(currentShowCase);
+        GalleryShowCaseList.add(singleAlbumShowCase);
+        GalleryShowCaseList.add(dateAlbum);
 
-
-        // Log.d(TAG,"START ALLLIST SIZE: " + allItemList.size());
-        //Log.d(TAG, "DataManager: CORE_POOL_SIZE" + CORE_POOL_SIZE);
         scanMediaFiles();
 
         // initialize memory cache
@@ -181,6 +139,7 @@ public class DataManager {
         // cached thread pool for BitmapWorkerTask
         cachedThreadPool = Executors.newCachedThreadPool();
     }
+
     public static DataManager getInstance() {
         return sDataManager;
     }
@@ -227,6 +186,16 @@ public class DataManager {
                 selection,
                 null,
                 MediaStore.Files.FileColumns.DATE_TAKEN + " DESC");
+        String singleAlbumName = "AllPictures";
+        String singleAlbumPath = "AllPictures";
+        MediaAlbum singleAlbum;
+        if(singleAlbumShowCase.size() == 0){
+            singleAlbum = new MediaAlbum(singleAlbumPath,singleAlbumName,1);
+            singleAlbumShowCase.add(singleAlbum);
+        }else{
+            singleAlbum = singleAlbumShowCase.get(0);
+        }
+
 
         if(cursor != null && cursor.getCount()>0) {
             //loop the cursor to save media items.
@@ -234,7 +203,7 @@ public class DataManager {
 
                 int id;
                 String path, name, from, contentUri;
-                String month, realDate ;
+                String month, realDate;
                 path = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA));
                 id = cursor.getInt(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID));
                 contentUri = queryUri.buildUpon().appendPath(String.valueOf(id)).build().toString();
@@ -282,19 +251,25 @@ public class DataManager {
 
                 String year = String.valueOf(calendar.get(Calendar.YEAR));
                 String day = String.valueOf(calendar.get(Calendar.DATE));
-
                 String yyyyMM = year + "年" + month + "月" + day + "日";
-                // add record
-                if(albumMap.get(yyyyMM) == null) {
-                    //Log.d(TAG, "scanMediaFiles - AlbumMap: " + albumMap.get(yyyyMM) );
-                    albumMap.put(yyyyMM, new ArrayList<>());
+
+                boolean dateExist = false;
+                for(MediaAlbum i : dateAlbum){
+
+                    if(i.getName().compareTo(yyyyMM) == 0){
+                        i.addIndex(indexNumber);
+                        dateExist = true;
+                        break;
+                    }
                 }
 
-                albumMap.get(yyyyMM).add(indexNumber);
+                if(!dateExist){
+                    dateAlbum.add(new MediaAlbum(yyyyMM,yyyyMM,1,indexNumber,thumbnailPath));
+                }
+
+
                 //creating albums base on the files' folder
                 String albumPath = path.substring(0, path.length() - name.length() - 1);
-
-
                 boolean flag_IsInAlbum = false;
                 for (MediaAlbum i : currentShowCase) {
                     //loop the album folder, if the current image have the same parent folder
@@ -305,10 +280,12 @@ public class DataManager {
                     }
                 }
                 //the current show case is one of the showcases, which will display all the default folders(screenshot/camera/example) from phone.
-                //here we are only adding these default sub-albums to the current showcase, which maybe the initial showcase.
+                //here we are only adding these default sub-albums to the current showcase.
                 if(!flag_IsInAlbum) {
                     currentShowCase.add(new MediaAlbum(albumPath,from,1, indexNumber, thumbnailPath));
                 }
+
+                singleAlbum.addIndex(indexNumber);
             }
 
         } else {
@@ -317,18 +294,8 @@ public class DataManager {
         }
 
         cursor.close();
-        createShowcaseList();
+        //createShowcaseList();
         return true;
-    }
-
-    private void createShowcaseList() {
-        //showcase index 1: all picture
-        Log.d(TAG,"DEFAULT SHOWCASE SIZE: "+currentShowCase.size());
-        createAllPicAlbumShowcase();
-        Log.d(TAG,"ALLPICS SHOWCASE SIZE: "+GalleryShowCaseList.get(1).size());
-        //showcase index 2: date list
-        createDateAlbumShowcase();
-        Log.d(TAG,"DATE    SHOWCASE SIZE: "+GalleryShowCaseList.get(2).size());
     }
 
     private void createAllPicAlbumShowcase() {
@@ -347,7 +314,7 @@ public class DataManager {
 
     private void createDateAlbumShowcase() {
         List<MediaAlbum> dateList = new ArrayList<>();
-        GalleryShowCaseList.add(dateList);
+        //GalleryShowCaseList.add(dateList);
         int indexNumber = 0;
         for(MediaFile i : allItemList){
 
@@ -397,10 +364,10 @@ public class DataManager {
         return GalleryShowCaseList.get(showcase).get(album).getAlbum();
     }
 
-
     public List<String> getImagePaths() {
         return imagePaths;
     }
+
     public List<MediaFile> getAllItemList() {
         return allItemList;
     }
@@ -450,12 +417,20 @@ public class DataManager {
         return albumMap;
     }
 
-    public Set<String> getAlbumKeySet() {
-        return albumMap.keySet();
+    public List<String> getDateAlbumNames() {
+
+        List<String> names = new ArrayList<>();
+
+        for (MediaAlbum i : dateAlbum){
+            Log.d(TAG, "getDateAlbumNames: " + i.getName());
+            names.add(i.getName());
+        }
+
+        return names;
     }
 
     public List<Integer> getPhotoListInAlbum(String key) {
-        final List<Integer> photoList = new ArrayList<>();
+
         /*
         for (int i = 0; i < albumList.get(index).getAlbum().size(); i++) {
             String ThumbnailPath = dataManager.getShowcaseOrAlbumOrIndex(2, index, i).getThumbnailPath();
@@ -464,13 +439,16 @@ public class DataManager {
             photoList.add(new Photo(ThumbnailPath));
         }
          */
-        for(int index : albumMap.get(key)) {
-            photoList.add(index);
+
+        for(MediaAlbum album : dateAlbum){
+            Log.d(TAG, "getPhotoListInAlbum: " + album.getName());
+            if(album.getName().compareTo(key) == 0){
+                return album.getAlbum();
+            }
         }
-        return photoList;
+
+        return null;
     }
-
-
 
     public void loadBitmap(int position, DataAdapter.ViewHolder viewHolder, int thumbNailWidth) {
 
@@ -513,13 +491,6 @@ public class DataManager {
             Log.d(TAG, "loadBitmap: idKey " + idKey + " memory hit");
         }
         else { // // check if bitmap is cached in disk
-            bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
-            if (bitmap != null) {
-                imageView.setImageBitmap(bitmap);
-                memoryCache.put(String.valueOf(idKey), bitmap);
-                Log.d(TAG, "loadBitmap: idKey " + idKey + " disk hit");
-            }
-            else {
                 if(!viewHolder.isLoading()) {
                     // change viewholder's loading state from false to true
                     viewHolder.switchLoadState();
@@ -530,7 +501,7 @@ public class DataManager {
                     // workerTask.execute(position, mediaType);
                     Log.d(TAG, "loadBitmap: idKey " + idKey + " miss, reading asynchronously");
                 }
-            }
+
         }
     }
 
@@ -561,14 +532,6 @@ public class DataManager {
 
         }
         else { // // check if bitmap is cached in disk
-
-            bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
-            if (bitmap != null) {
-                imageView.setImageBitmap(bitmap);
-                albumMemoryCache.put(String.valueOf(idKey), bitmap);
-                //Log.d(TAG, "loadBitmap: position " + idKey + " disk hit. albumMemSize: "+ albumMemoryCache.size()+ " MY Albums count: "+ getShowcaseOrAlbumOrIndex(0).size());
-            }
-            else {
                 if(!viewHolder.isLoading()) {
                     // change viewholder's loading state from false to true
                     viewHolder.switchLoadState();
@@ -579,10 +542,9 @@ public class DataManager {
                     // workerTask.execute(position, mediaType);
                     Log.d(TAG, "loadBitmap: idKey " + idKey + " miss, reading asynchronously");
                 }
-            }
+
         }
     }
-
     // Creates a unique subdirectory of the designated app cache directory.
     // Tries to use external but if not mounted, falls back on internal storage.
     private static File getDiskCacheDir(Context context, String uniqueName) {
@@ -596,32 +558,7 @@ public class DataManager {
 
         return new File(cachePath + File.separator + uniqueName);
     }
-    private Bitmap getBitmapFromDiskCache(String key) {
 
-        synchronized (diskCacheLock) {
-            // Wait while disk cache is started from background thread
-            while (diskCacheStarting) {
-                try {
-                    diskCacheLock.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (diskLruCache != null) {
-                try {
-                    DiskLruCache.Value value = diskLruCache.get(key);
-                    if(value != null) {
-                        String encodedBitmap = value.getString(0);
-                        byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
-                        return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return null;
-    }
     private static void addBitmapToCache(String key, Bitmap bitmap,int style) {
         if(style == 1){
             // Add to memory cache
@@ -662,46 +599,10 @@ public class DataManager {
     private static Bitmap getBitmapFromMemCache(String key) {
         return memoryCache.get(key);
     }
+
     private static Bitmap getBitmapFromAlbumMemCache(String key) {
         return albumMemoryCache.get(key);
     }
-    class MyCallable implements Callable<Bitmap> {
-        private String key;
-
-        public MyCallable(String key){
-            this.key = key;
-        }
-
-        @Override
-        public Bitmap call() {
-            Log.d(TAG, "call: " + Thread.currentThread().getName());
-            synchronized (diskCacheLock) {
-                // Wait while disk cache is started from background thread
-                while (diskCacheStarting) {
-                    try {
-                        diskCacheLock.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (diskLruCache != null) {
-                    try {
-                        DiskLruCache.Value value = diskLruCache.get(key);
-                        if(value != null) {
-                            String encodedBitmap = value.getString(0);
-                            byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
-                            return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return null;
-        }
-    }
-
-
 
     static class InitDiskCacheTask extends AsyncTask<File, Void, Void> {
         @Override
@@ -759,10 +660,29 @@ public class DataManager {
             Log.d(TAG, "doInBackground: Cancelled : " + this.isCancelled());
 
             while(!this.isCancelled() ){
+
+
                 int position = params[0];
+
+
                 int width;
                 MediaFile file;
 
+                Log.d(TAG, "doInBackground: Cancelled : " + this.isCancelled());
+                //means we are decoding a bitmap for album cover, which needs higher quality.
+                if(params.length == 3){
+                    width = params[2];
+                    if(position == -1){
+                        position = position+1;
+                    }else{
+                        position = position/(-2);
+                    }
+                }else{
+                    //normal size, width = screen/4.
+                    width =  params[1];
+
+                }
+                file = allItemList.get(position);
                 String key = String.valueOf(allItemList.get(position).getId());
 
                 synchronized (diskCacheLock) {
@@ -794,32 +714,6 @@ public class DataManager {
                     }
                 }
 
-//                Bitmap bitmapInCache = inDiskCache(key);
-//                if(bitmapInCache != null){
-//                    //if found bitmap, return.
-//                    return bitmapInCache;
-//                }else{
-//                    //else check if the task is cancelled.
-//                     if(isCancelled()){
-//                         break;
-//                     }
-//                }
-
-                Log.d(TAG, "doInBackground: Cancelled : " + this.isCancelled());
-                //means we are decoding a bitmap for album cover, which needs higher quality.
-                if(params.length == 3){
-                    width = params[2];
-
-                    if(position == -1){
-                        file = allItemList.get(position + 1);
-                    }else{
-                        file = allItemList.get(position/(-2));
-                    }
-                }else{
-                    //normal size, width = screen/4.
-                    width =  params[1];
-                    file = allItemList.get(position);
-                }
                 if(isCancelled()){
                     break;
                 }
