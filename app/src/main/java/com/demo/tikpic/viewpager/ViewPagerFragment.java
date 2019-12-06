@@ -60,7 +60,7 @@ public class ViewPagerFragment extends Fragment {
         } else {
             GestureViewPager view = new GestureViewPager(mContext);
             view.setBackgroundColor(getResources().getColor(R.color.black));
-            view.setPageMargin((int)getResources().getDimensionPixelOffset(R.dimen.page_margen));
+            view.setPageMargin((int) getResources().getDimensionPixelOffset(R.dimen.page_margen));
             List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
             GestureViewPagerAdapter mAdapter = new GestureViewPagerAdapter(mContext, list);
             view.setAdapter(mAdapter);
@@ -71,9 +71,9 @@ public class ViewPagerFragment extends Fragment {
 //            List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
 //            MediaFile item = list.get(itemIndex);
 //
-//                ImageDisplayView view = new ImageDisplayView(mContext);
-//                view.setUri(Uri.parse(item.getPath()));
-//                return view;
+//            ImageDisplayView view = new ImageDisplayView(mContext);
+//            view.setUri(Uri.parse(item.getPath()));
+//            return view;
         }
 
     }

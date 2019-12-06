@@ -123,6 +123,9 @@ public class InputDetector {
 
     // 计算两个触摸点之间的距离
     private Double distance(MotionEvent event) {
+        if(event.getPointerCount()<2){
+            return 0.0d;
+        }
         float x = event.getX(0) - event.getX(1);
         float y = event.getY(0) - event.getY(1);
         return Math.sqrt(x * x + y * y);

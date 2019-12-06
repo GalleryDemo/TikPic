@@ -261,7 +261,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         scale *= x;
         int w = (int) (videoWidth * scale);
         int h = (int) (videoHeight * scale);
-        Log.d(TAG, "setSize: "+w+"  /  "+h);
+        Log.d(TAG, "setSize: " + w + "  /  " + h);
         LayoutParams layoutParams = new LayoutParams(w, h);
         //layoutParams.setMargins((screenWidth-w)/2,(screenHight-h)/2,screenWidth-(screenWidth-w)/2,screenHight-(screenHight-h)/2);
         layoutParams.setMargins((screenWidth - w) / 2, (screenHight - h) / 2, 0, 0);
