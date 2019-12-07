@@ -189,15 +189,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.pause();
+                VideoView.this.onClick();
 
-                    mPlayIcon.setVisibility(View.VISIBLE);
-                } else {
-                    mMediaPlayer.start();
-
-                    mPlayIcon.setVisibility(View.INVISIBLE);
-                }
             }
         });
 
@@ -334,9 +327,11 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private void onClick() {
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
+            button.setImageResource(R.drawable.play_pause_normal);
             mPlayIcon.setVisibility(View.VISIBLE);
         } else {
             mMediaPlayer.start();
+            button.setImageResource(R.drawable.play_pause);
             mPlayIcon.setVisibility(View.INVISIBLE);
         }
     }
