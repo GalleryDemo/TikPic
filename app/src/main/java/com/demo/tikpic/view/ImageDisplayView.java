@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import com.demo.tikpic.viewpager.GestureViewPager;
 import com.demo.tikpic.viewpager.ViewPagerFragment;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -141,6 +142,7 @@ public class ImageDisplayView extends View {
             try {
                 FileInputStream f = (FileInputStream) getContext().getContentResolver().openInputStream(uri);
                 resource = BitmapRegionDecoder.newInstance(f, false);
+
                 imageSize[0] = resource.getWidth();
                 imageSize[1] = resource.getHeight();
             } catch (IOException e) {
@@ -208,6 +210,10 @@ public class ImageDisplayView extends View {
     }
 
     public void setUri(Uri uri) {
+
+
+
+
         id = uri.toString();
         mImage = new ImageResource(uri);
         //Log.d(TAG, "setUri: " + uri.getPath());
@@ -398,17 +404,19 @@ public class ImageDisplayView extends View {
     private void doFirst() {
 
         //小图
-        // if(mImage.imageSize[0]*mImage.imageSize[1]<9000000000){
-        if (true) {
+        Log.d(TAG, "doFirst: szie"+mImage.imageSize[0]*mImage.imageSize[1]);
+         if(mImage.imageSize[0]*mImage.imageSize[1]<12000000){
             mImage.setBasicBlockSize(mImage.imageSize[0], mImage.imageSize[1]);
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = false;
             options.inPreferredConfig = Bitmap.Config.RGB_565;
-            options.inSampleSize = 1;
-            b();
-            mDisplayWindow.bitmap = mImage.resource.decodeRegion(new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]), options);
-            e();
+            options.inSampleSize =1;
+            long begin = System.currentTimeMillis();
 
+            mDisplayWindow.bitmap = mImage.resource.decodeRegion(new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]), options);
+            long end = System.currentTimeMillis();
+            Log.d(TAG, "doFirst: wh"+mImage.imageSize[0]+"  //  "+mImage.imageSize[1]);
+            Log.d(TAG, "耗时11111  ----------------: " + "  time :" + (end - begin));
 
         } else {
             float ratio = caculateRatio();
@@ -418,20 +426,18 @@ public class ImageDisplayView extends View {
             options.inPreferredConfig = Bitmap.Config.RGB_565;
 
             if (ratio < 1.0f) {
-                options.inSampleSize = (int) (1 / ratio) * 2;
+                options.inSampleSize = caculateSampleSize(caculateRatio(),1);
             } else {
                 options.inSampleSize = 1;
             }
             Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
             mDisplayWindow.bitmap = mImage.resource.decodeRegion(blockRect, options);
 
-            mMatrix = new Matrix();
-            mMatrix.setScale(options.inSampleSize / ratio, options.inSampleSize / ratio);
+             mImage.setBasicBlockSize(  mDisplayWindow.bitmap.getWidth(),mDisplayWindow.bitmap.getHeight());
+
 
         }
-
-
-        displayEffect();
+         displayEffect();
     }
 
     private void displayOriginal() {
@@ -454,7 +460,6 @@ public class ImageDisplayView extends View {
             if (scale <= 1 / (float) (2 * sampleSize) && mImage.basicBlockSize[0] * sampleSize <=
                     mImage.imageSize[0] && mImage.basicBlockSize[1] * sampleSize < mImage.imageSize[1]) {
                 sampleSize *= 2;
-
             } else if (scale >= 1 / (float) (2 * (sampleSize / 2))) {
                 if (sampleSize != 1) {
                     sampleSize /= 2;
@@ -468,16 +473,6 @@ public class ImageDisplayView extends View {
         return sampleSize;
     }
 
-    long begin, end;
-
-    private void b() {
-        begin = System.currentTimeMillis();
-    }
-
-    private void e() {
-        end = System.currentTimeMillis();
-        Log.d(TAG, "耗时  ----------------: " + "  time :" + (end - begin));
-    }
 
     private void imageZoom(float x, Point point) {
 
@@ -556,10 +551,7 @@ public class ImageDisplayView extends View {
         }
         if (isBlockChanged) {
             setTranslate(transXY[0] + dxy[0], transXY[1] + dxy[1]);
-            //  long begin = System.currentTimeMillis();
             block();
-            //   long end = System.currentTimeMillis();
-            // Log.d(TAG, "imageMoveimageMoveimageMove: " + "  time :" + (end - begin));
 
         } else {
             setTranslate(dxy[0], dxy[1]);
