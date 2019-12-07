@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
@@ -193,7 +194,6 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
             }
         });
-
 
         text_now = (TextView) findViewById(R.id.text_now);
         text_all = (TextView) findViewById(R.id.text_all);

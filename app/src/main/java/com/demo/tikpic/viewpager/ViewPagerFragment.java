@@ -58,22 +58,22 @@ public class ViewPagerFragment extends Fragment {
             Toast.makeText(getContext(), "没有坐标", Toast.LENGTH_LONG).show();
             return null;
         } else {
-            GestureViewPager view = new GestureViewPager(mContext);
-            view.setBackgroundColor(getResources().getColor(R.color.black));
-            view.setPageMargin((int) getResources().getDimensionPixelOffset(R.dimen.page_margen));
-            List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
-            GestureViewPagerAdapter mAdapter = new GestureViewPagerAdapter(mContext, list);
-            view.setAdapter(mAdapter);
-            view.setCurrentItem(itemIndex);
-            return view;
+//            GestureViewPager view = new GestureViewPager(mContext);
+//            view.setBackgroundColor(getResources().getColor(R.color.black));
+//            view.setPageMargin((int) getResources().getDimensionPixelOffset(R.dimen.page_margen));
+//            List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
+//            GestureViewPagerAdapter mAdapter = new GestureViewPagerAdapter(mContext, list);
+//            view.setAdapter(mAdapter);
+//            view.setCurrentItem(itemIndex);
+//            return view;
 
             //单图片界面调试
-//            List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
-//            MediaFile item = list.get(itemIndex);
-//
-//            ImageDisplayView view = new ImageDisplayView(mContext);
-//            view.setUri(Uri.parse(item.getPath()));
-//            return view;
+            List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
+            MediaFile item = list.get(itemIndex);
+
+            ImageDisplayView view = new ImageDisplayView(mContext);
+            view.setUri(Uri.parse(item.getPath()));
+            return view;
         }
 
     }

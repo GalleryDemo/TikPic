@@ -69,7 +69,7 @@ public class ImageDisplayView extends View {
             float num_moveSpeed = 1.0f;
 
             switch (n) {
-                case 4:
+                case 8:
                     onClick();
                     break;
                 case 3:
@@ -112,10 +112,6 @@ public class ImageDisplayView extends View {
             setImageUri(uri);
             sampleSize = 1;
             setBasicBlockSize(1024);
-            //小图直接加载的功能
-            if (imageSize[0] <= 3 * basicBlockSize[0] && imageSize[1] < 3 * basicBlockSize[1]) {
-                setBasicBlockSize(imageSize[0] > imageSize[1] ? imageSize[0] : imageSize[1]);
-            }
         }
 
         void setBasicBlockSize(int n) {
@@ -123,6 +119,13 @@ public class ImageDisplayView extends View {
             basicBlockSize[1] = n;
             setSampleSize(1);
         }
+
+        void setBasicBlockSize(int w, int h) {
+            basicBlockSize[0] = w;
+            basicBlockSize[1] = h;
+            setSampleSize(1);
+        }
+
 
         void setSampleSize(int n) {
             sampleSize = n;
@@ -210,12 +213,13 @@ public class ImageDisplayView extends View {
         //Log.d(TAG, "setUri: " + uri.getPath());
         mDisplayWindow = new DisplayWindow();
         mState = 1;
-        //displayFirst();
+
         //Log.d(TAG, "setUri: " + mImage.imageSize[0] + "    ///   " + mImage.imageSize[1]);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                displayEffect();
+                doFirst();
+                //displayEffect();
             }
         }).start();
     }
@@ -389,24 +393,45 @@ public class ImageDisplayView extends View {
         mState = 1;
     }
 
-    private void displayFirst() {
-        float ratio = caculateRatio();
-        // Log.d(TAG, "displayFirst: "+ratio);
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = false;
-        options.inPreferredConfig = Bitmap.Config.RGB_565;
+    private Map<String, Bitmap> mBasicBitmap = new HashMap<>();
 
-        if (ratio < 1.0f) {
-            options.inSampleSize = (int) (1 / ratio) * 2;
+    private void doFirst() {
+
+        //小图
+        // if(mImage.imageSize[0]*mImage.imageSize[1]<9000000000){
+        if (true) {
+            mImage.setBasicBlockSize(mImage.imageSize[0], mImage.imageSize[1]);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = false;
+            options.inPreferredConfig = Bitmap.Config.RGB_565;
+            options.inSampleSize = 1;
+            b();
+            mDisplayWindow.bitmap = mImage.resource.decodeRegion(new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]), options);
+            e();
+
+
         } else {
-            options.inSampleSize = 2;
-        }
-        Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
-        mDisplayWindow.bitmap = mImage.resource.decodeRegion(blockRect, options);
+            float ratio = caculateRatio();
+            // Log.d(TAG, "displayFirst: "+ratio);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = false;
+            options.inPreferredConfig = Bitmap.Config.RGB_565;
 
-        mMatrix = new Matrix();
-        mMatrix.setScale(options.inSampleSize / ratio, options.inSampleSize / ratio);
-        invalidate();
+            if (ratio < 1.0f) {
+                options.inSampleSize = (int) (1 / ratio) * 2;
+            } else {
+                options.inSampleSize = 1;
+            }
+            Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
+            mDisplayWindow.bitmap = mImage.resource.decodeRegion(blockRect, options);
+
+            mMatrix = new Matrix();
+            mMatrix.setScale(options.inSampleSize / ratio, options.inSampleSize / ratio);
+
+        }
+
+
+        displayEffect();
     }
 
     private void displayOriginal() {
@@ -441,6 +466,17 @@ public class ImageDisplayView extends View {
             }
         }
         return sampleSize;
+    }
+
+    long begin, end;
+
+    private void b() {
+        begin = System.currentTimeMillis();
+    }
+
+    private void e() {
+        end = System.currentTimeMillis();
+        Log.d(TAG, "耗时  ----------------: " + "  time :" + (end - begin));
     }
 
     private void imageZoom(float x, Point point) {
@@ -587,9 +623,11 @@ public class ImageDisplayView extends View {
                 }
             } else if (-mMatrixTranslate[i] + mScreenSize[i] + mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * mScale > mImage.imageSize[i] * mScale ||
                     -mMatrixTranslate[i] + mScreenSize[i] - dxy[i] + mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * mScale > mImage.imageSize[i] * mScale) {
-                dxy[i] = mScreenSize[i] - (mImage.imageSize[i] * mScale - mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * mScale) - mMatrixTranslate[i] ;
-                if(dxy[i]>-1.0f&&dxy[i]<1.0f){
-                    dxy[i]=(int)(dxy[i]*2);
+                dxy[i] = mScreenSize[i] - (mImage.imageSize[i] * mScale - mDisplayWindow.posion[i] * mImage.adaptBlockSize[i] * mScale) - mMatrixTranslate[i];
+                if (dxy[i] > -1.0f && dxy[i] < 0.0f) {
+                    dxy[i] = -1.0f;
+                } else if (dxy[i] < 1.0f && dxy[i] > 0.0f) {
+                    dxy[i] = 1.0f;
                 }
                 if (i == 0 && Math.abs(dx) > 0.01f) {
                     flag = 0;
