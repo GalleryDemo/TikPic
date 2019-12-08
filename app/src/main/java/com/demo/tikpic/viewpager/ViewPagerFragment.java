@@ -58,7 +58,7 @@ public class ViewPagerFragment extends Fragment {
             Toast.makeText(getContext(), "没有坐标", Toast.LENGTH_LONG).show();
             return null;
         } else {
-            boolean flag = false;
+            boolean flag = true;
             if (flag) {
                 GestureViewPager view = new GestureViewPager(mContext);
                 view.setBackgroundColor(getResources().getColor(R.color.black));

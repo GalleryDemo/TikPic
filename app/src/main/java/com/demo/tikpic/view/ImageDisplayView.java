@@ -58,6 +58,7 @@ public class ImageDisplayView extends View {
 
     private Map<String, Bitmap> mBaseBitmap = new HashMap<>();
 
+
     //手势
     private InputDetector mInputDetector;
     private InputDetector.OnInputListener mListener = new InputDetector.OnInputListener() {
@@ -269,6 +270,9 @@ public class ImageDisplayView extends View {
                 //Log.d(TAG, "block: key " + key);
 
                 Bitmap blockBitmap = mLoader.getBitmap(key);
+                if(blockBitmap==null){
+                    blockBitmap = mBaseBitmap.get(key);
+                }
                 String key2 = "";
                 if (blockBitmap == null) {
 
@@ -279,7 +283,7 @@ public class ImageDisplayView extends View {
                         blockBitmap = mLoader.getBitmap(key2);
                         if (k == caculateSampleSize(caculateRatio()) && blockBitmap != null) {
                             blockBitmap = mBaseBitmap.get(key2);
-                           // Log.d(TAG, "block: use basebitmappppppppppp");
+
                         }
 
                         if (blockBitmap != null) {
@@ -455,6 +459,7 @@ public class ImageDisplayView extends View {
                      int rectTop = j * mImage.basicBlockSize[1];
                      Bitmap add = Bitmap.createBitmap(xxxx, rectLeft, rectTop, thisWidth, thisHeight, null, false);
                      String key2 = id + "_" + options.inSampleSize + "/" + i + "/" + j;
+                     Log.d(TAG, "doFirst: keyyyyyyy"+key2);
                      mBaseBitmap.put(key2, add);
                  }
              }
@@ -477,12 +482,24 @@ public class ImageDisplayView extends View {
     }
 
     private int caculateSampleSize(float scale) {
-        if(scale>=1.0f){
-            return 1;
-        }else{
-            return (int)Math.ceil(Math.log(1/scale)/Math.log(2))*2;
-        }
+        boolean flag = true;
+        int sampleSize = 1;
+        while (flag) {
+            if (scale <= 1 / (float) (2 * sampleSize) && mImage.basicBlockSize[0] * sampleSize <=
+                    mImage.imageSize[0] && mImage.basicBlockSize[1] * sampleSize < mImage.imageSize[1]) {
+                sampleSize *= 2;
 
+            } else if (scale >= 1 / (float) (2 * (sampleSize / 2))) {
+                if (sampleSize != 1) {
+                    sampleSize /= 2;
+                } else {
+                    flag = false;
+                }
+            } else {
+                flag = false;
+            }
+        }
+        return sampleSize;
     }
 
 
@@ -516,6 +533,7 @@ public class ImageDisplayView extends View {
         int sampleSize = mImage.sampleSize;
         //如果切换到了下一个倍率
         int newSampleSize = caculateSampleSize(newMatrixScale);
+        Log.d(TAG, "imageZoom: newSampleSizenewSampleSize"+newSampleSize+"   "+newMatrixScale);
         if (newSampleSize != sampleSize) {
             mImage.setSampleSize(newSampleSize);
             update1 = true;
