@@ -21,6 +21,8 @@ public class InputDetector {
     public int gestureX, gestureY;
     private int num_h;
 
+    private long doubleClickTime;
+
     private String TAG = "InputDetector";
 
     public interface OnInputListener {
@@ -116,6 +118,15 @@ public class InputDetector {
         switch (state) {
             case 4:
                 state = 0;
+                if(System.currentTimeMillis()-doubleClickTime<700){
+                    mListener.action(8);
+                    doubleClickTime=0;
+                }else{
+                    doubleClickTime=System.currentTimeMillis();
+                }
+
+
+
                 break;
         }
     }

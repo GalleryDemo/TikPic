@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
@@ -49,6 +50,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private boolean flag_play;
     float scale = 1.0f;
     int videoWidth, videoHeight;
+    VideoToolbar videoToolbar;
+    int hideToolbar;
 
     private Thread thr() {
         return new Thread() {
@@ -177,7 +180,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         mPlayIcon.setLayoutParams(lp);//设置布局参数
         addView(mPlayIcon);//RelativeLayout添加子View
 
-        VideoToolbar videoToolbar = new VideoToolbar(mContext);
+         videoToolbar = new VideoToolbar(mContext);
         RelativeLayout.LayoutParams lp2 = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp2.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -188,18 +191,10 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.pause();
+                VideoView.this.onClick();
 
-                    mPlayIcon.setVisibility(View.VISIBLE);
-                } else {
-                    mMediaPlayer.start();
-
-                    mPlayIcon.setVisibility(View.INVISIBLE);
-                }
             }
         });
-
 
         text_now = (TextView) findViewById(R.id.text_now);
         text_all = (TextView) findViewById(R.id.text_all);
@@ -211,9 +206,13 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
                     // 如果是用户手动拖动控件，则设置视频跳转。
                     if (fromUser) {
                         mMediaPlayer.seekTo(progress);
+                    }else {
+                        if(hideToolbar>=3000){
+                            videoToolbar.setVisibility(View.INVISIBLE);
+                        }else{
+                            hideToolbar++;
+                        }
                     }
-                    // 设置当前播放时间
-
                 } else {
                     if (fromUser) {
                         mMediaPlayer.seekTo(progress);
@@ -333,15 +332,19 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     private void onClick() {
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
+            button.setImageResource(R.drawable.play_pause_normal);
             mPlayIcon.setVisibility(View.VISIBLE);
         } else {
             mMediaPlayer.start();
+            button.setImageResource(R.drawable.play_pause);
             mPlayIcon.setVisibility(View.INVISIBLE);
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        videoToolbar.setVisibility(View.VISIBLE);
+        hideToolbar = 0;
         return mInputDetector.onTouchEvent(event);
     }
 
