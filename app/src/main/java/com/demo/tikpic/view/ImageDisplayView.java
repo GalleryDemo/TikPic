@@ -68,6 +68,8 @@ public class ImageDisplayView extends View {
             float num_moveSpeed = 1.0f;
 
             switch (n) {
+                case 4:
+                    break;
                 case 8:
                     onClick();
                     break;
@@ -271,12 +273,11 @@ public class ImageDisplayView extends View {
                 if (blockBitmap == null) {
 
                    // Log.d(TAG, "block: " + key + "  块不存在");
-                    for (int k = mImage.sampleSize * 2, l = 2; k <= caculateSampleSize(caculateRatio(),
-                            mImage.sampleSize); k *= 2, l *= 2) {
+                    for (int k = mImage.sampleSize * 2, l = 2; k <= caculateSampleSize(caculateRatio()); k *= 2, l *= 2) {
                         key2 = id + "_" + k + "/" + (i / l) + "/" + (j / l);
 
                         blockBitmap = mLoader.getBitmap(key2);
-                        if (k == caculateSampleSize(caculateRatio(), mImage.sampleSize) && blockBitmap != null) {
+                        if (k == caculateSampleSize(caculateRatio()) && blockBitmap != null) {
                             blockBitmap = mBaseBitmap.get(key2);
                            // Log.d(TAG, "block: use basebitmappppppppppp");
                         }
@@ -416,7 +417,7 @@ public class ImageDisplayView extends View {
             mImage.setBasicBlockSize(mImage.imageSize[0], mImage.imageSize[1]);
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = false;
-            options.inPreferredConfig = Bitmap.Config.RGB_565;
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             options.inSampleSize =1;
             long begin = System.currentTimeMillis();
 
@@ -426,64 +427,40 @@ public class ImageDisplayView extends View {
             Log.d(TAG, "耗时11111  ----------------: " + "  time :" + (end - begin));
 
         } else {
-            float ratio = caculateRatio();
-            // Log.d(TAG, "displayFirst: "+ratio);
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = false;
-            options.inPreferredConfig = Bitmap.Config.RGB_565;
+             float ratio = caculateRatio();
+             // Log.d(TAG, "loadBasicBitmap: "+ratio);
+             BitmapFactory.Options options = new BitmapFactory.Options();
+             options.inJustDecodeBounds = false;
+             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
-            if (ratio < 1.0f) {
-                options.inSampleSize = caculateSampleSize(caculateRatio(),1);
-            } else {
-                options.inSampleSize = 1;
-            }
-            Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
-            mDisplayWindow.bitmap = mImage.resource.decodeRegion(blockRect, options);
+             options.inSampleSize=caculateSampleSize(ratio);
 
-             mImage.setBasicBlockSize(  mDisplayWindow.bitmap.getWidth(),mDisplayWindow.bitmap.getHeight());
+             Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
 
+             long begin = System.currentTimeMillis();
+             Bitmap xxxx = mImage.resource.decodeRegion(blockRect, options);
+             long end = System.currentTimeMillis();
+             Log.d(TAG, "run: memory   "+(float)xxxx.getAllocationByteCount()/1024/1024);
+             Log.d(TAG, "loadBasicBitmap: " + "  time :" + (end - begin));
+
+
+             mImage.setSampleSize(options.inSampleSize);
+             for (int i = 0; i <= mImage.numBlocks[0]; i++) {
+                 for (int j = 0; j <= mImage.numBlocks[1]; j++) {
+                     int thisWidth = (i == mImage.numBlocks[0]) ? mImage.edgeBlockLength[0] / options.inSampleSize :
+                             mImage.basicBlockSize[0];
+                     int thisHeight = (j == mImage.numBlocks[1]) ? mImage.edgeBlockLength[1] / options.inSampleSize :
+                             mImage.basicBlockSize[1];
+                     int rectLeft = i * mImage.basicBlockSize[0];
+                     int rectTop = j * mImage.basicBlockSize[1];
+                     Bitmap add = Bitmap.createBitmap(xxxx, rectLeft, rectTop, thisWidth, thisHeight, null, false);
+                     String key2 = id + "_" + options.inSampleSize + "/" + i + "/" + j;
+                     mBaseBitmap.put(key2, add);
+                 }
+             }
 
         }
          displayEffect();
-    }
-
-    private void loadBasicBitmap() {
-        float ratio = caculateRatio();
-        // Log.d(TAG, "loadBasicBitmap: "+ratio);
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = false;
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-
-        int samplesize = 1;
-        if (ratio < 1.0f) {
-            options.inSampleSize = (int) (1 / ratio);
-        } else {
-            options.inSampleSize = 1;
-        }
-        samplesize = options.inSampleSize;
-        Rect blockRect = new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]);
-
-        long begin = System.currentTimeMillis();
-        Bitmap xxxx = mImage.resource.decodeRegion(blockRect, options);
-        long end = System.currentTimeMillis();
-        Log.d(TAG, "run: memory   "+(float)xxxx.getAllocationByteCount()/1024/1024);
-        Log.d(TAG, "loadBasicBitmap: " + "  time :" + (end - begin));
-
-
-        mImage.setSampleSize(options.inSampleSize);
-        for (int i = 0; i <= mImage.numBlocks[0]; i++) {
-            for (int j = 0; j <= mImage.numBlocks[1]; j++) {
-                int thisWidth = (i == mImage.numBlocks[0]) ? mImage.edgeBlockLength[0] / options.inSampleSize :
-                        mImage.basicBlockSize[0];
-                int thisHeight = (j == mImage.numBlocks[1]) ? mImage.edgeBlockLength[1] / options.inSampleSize :
-                        mImage.basicBlockSize[1];
-                int rectLeft = i * mImage.basicBlockSize[0];
-                int rectTop = j * mImage.basicBlockSize[1];
-                Bitmap add = Bitmap.createBitmap(xxxx, rectLeft, rectTop, thisWidth, thisHeight, null, false);
-                String key2 = id + "_" + samplesize + "/" + i + "/" + j;
-                mBaseBitmap.put(key2, add);
-            }
-        }
     }
 
     private void displayOriginal() {
@@ -499,23 +476,13 @@ public class ImageDisplayView extends View {
         mMatrix.postTranslate((int) x, (int) y);
     }
 
-    private int caculateSampleSize(float scale, int sampleSize) {
-        boolean flag = true;
-        while (flag) {
-            if (scale <= 1 / (float) (2 * sampleSize) && mImage.basicBlockSize[0] * sampleSize <=
-                    mImage.imageSize[0] && mImage.basicBlockSize[1] * sampleSize < mImage.imageSize[1]) {
-                sampleSize *= 2;
-            } else if (scale >= 1 / (float) (2 * (sampleSize / 2))) {
-                if (sampleSize != 1) {
-                    sampleSize /= 2;
-                } else {
-                    flag = false;
-                }
-            } else {
-                flag = false;
-            }
+    private int caculateSampleSize(float scale) {
+        if(scale>=1.0f){
+            return 1;
+        }else{
+            return (int)Math.ceil(Math.log(1/scale)/Math.log(2))*2;
         }
-        return sampleSize;
+
     }
 
 
@@ -548,7 +515,7 @@ public class ImageDisplayView extends View {
         //检查倍率
         int sampleSize = mImage.sampleSize;
         //如果切换到了下一个倍率
-        int newSampleSize = caculateSampleSize(newMatrixScale, sampleSize);
+        int newSampleSize = caculateSampleSize(newMatrixScale);
         if (newSampleSize != sampleSize) {
             mImage.setSampleSize(newSampleSize);
             update1 = true;
