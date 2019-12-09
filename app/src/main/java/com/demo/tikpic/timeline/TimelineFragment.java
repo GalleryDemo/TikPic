@@ -56,7 +56,7 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
 
         sectionedAdapter = new MyAdapter();
 
-        final LoadPhotos loadPhotos = new LoadPhotos(hostActivity);
+        //final LoadPhotos loadPhotos = new LoadPhotos(hostActivity);
         final DataManager dataManager = DataManager.getInstance(hostActivity);
 
         for(String albumName : dataManager.getDateAlbumNames()) {
@@ -106,10 +106,13 @@ public class TimelineFragment extends Fragment implements PhotoSection.ClickList
                         sectionedAdapter.getPositionInSection(itemAdapterPosition),
                         sectionTitle), Toast.LENGTH_SHORT).show();*/
 
-        Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
-        intent.putExtra("position", itemAdapterPosition);
-        Log.d("DEBUGALL", "onClick - photoAdapter - itemAdapterPosition:  "+itemAdapterPosition);
-        hostActivity.startActivity(intent);
+//        Intent intent = new Intent(hostActivity, ViewPagerActivity.class);
+//        intent.putExtra("position", itemAdapterPosition);
+//        Log.d("DEBUGALL", "onClick - photoAdapter - itemAdapterPosition:  "+itemAdapterPosition);
+//        hostActivity.startActivity(intent);
+
+        hostActivity.photoPage(1,0,itemAdapterPosition);
+
     }
 
 }

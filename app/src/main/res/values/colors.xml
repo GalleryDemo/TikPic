@@ -9,6 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="cardview_dark_background">#FF2b2a30</color>
     <color name="cardview_dark_background_trans">#802b2a30</color>
+    <color name="cardview_lightDark_background_trans">#80b1b5b1</color>
 
 
 </resources>

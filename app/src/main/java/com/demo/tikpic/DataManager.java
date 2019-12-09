@@ -74,10 +74,9 @@ public class DataManager {
     //all media files are stored in this list.
     private static List<MediaFile> allItemList;
     private List<String> imagePaths;
-    //private Map<String, List<Integer>> albumMap;
+    //all the showCases.
     private List<MediaAlbum> dateAlbum;
     private List<MediaAlbum> singleAlbumShowCase;
-
 
     private static Context mContext;
     //the current show case
@@ -88,7 +87,6 @@ public class DataManager {
     private static LruCache<String, Bitmap> memoryCache;
     private static LruCache<String, Bitmap> albumMemoryCache;
 
-
     // Disk Cache
     private static DiskLruCache diskLruCache;
     private static final Object diskCacheLock = new Object();
@@ -98,6 +96,16 @@ public class DataManager {
     //private static final String DISK_CACHE_SUBDIR_ALBUM = "albumThumbnails";
 
     private static ExecutorService cachedThreadPool;
+
+    public int getCurrenPosition() {
+        return CURRENT_POSITION;
+    }
+
+    public void setCurrenPosition(int currenPosition) {
+        CURRENT_POSITION = currenPosition;
+    }
+
+    private int CURRENT_POSITION;
 
 
     private DataManager(Context context) {
@@ -706,7 +714,9 @@ public class DataManager {
                             if(value != null) {
                                 String encodedBitmap = value.getString(0);
                                 byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
-                                return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+                                memoryCache.put(key,bitmap);
+                                return bitmap;
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -801,45 +811,45 @@ public class DataManager {
             }
         }
 
-        private Bitmap inDiskCache(String idKey){
-            Bitmap bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
+//        private Bitmap inDiskCache(String idKey){
+//            Bitmap bitmap = getBitmapFromDiskCache(String.valueOf(idKey));
+//
+//            Log.d(TAG, "loadBitmap - Bitmap: "+ bitmap);
+//            if ( bitmap != null) {
+//
+//                memoryCache.put(String.valueOf(idKey), bitmap);
+//                Log.d(TAG, "loadBitmap: ID " + idKey + " disk hit");
+//                return bitmap;
+//            }
+//            return null;
+//        }
 
-            Log.d(TAG, "loadBitmap - Bitmap: "+ bitmap);
-            if ( bitmap != null) {
-
-                memoryCache.put(String.valueOf(idKey), bitmap);
-                Log.d(TAG, "loadBitmap: ID " + idKey + " disk hit");
-                return bitmap;
-            }
-            return null;
-        }
-
-        private Bitmap getBitmapFromDiskCache(String key) {
-
-            synchronized (diskCacheLock) {
-                // Wait while disk cache is started from background thread
-                while (diskCacheStarting) {
-                    try {
-                        diskCacheLock.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (diskLruCache != null) {
-                    try {
-                        DiskLruCache.Value value = diskLruCache.get(key);
-                        if(value != null) {
-                            String encodedBitmap = value.getString(0);
-                            byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
-                            return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return null;
-        }
+//        private Bitmap getBitmapFromDiskCache(String key) {
+//
+//            synchronized (diskCacheLock) {
+//                // Wait while disk cache is started from background thread
+//                while (diskCacheStarting) {
+//                    try {
+//                        diskCacheLock.wait();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                if (diskLruCache != null) {
+//                    try {
+//                        DiskLruCache.Value value = diskLruCache.get(key);
+//                        if(value != null) {
+//                            String encodedBitmap = value.getString(0);
+//                            byte[] bitmapArray = Base64.decode(encodedBitmap, Base64.DEFAULT);
+//                            return BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+//                        }
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//            return null;
+//        }
 
         private Bitmap decodeBitmapFromStream(InputStream is, int reqWidth, int reqHeight) {
 

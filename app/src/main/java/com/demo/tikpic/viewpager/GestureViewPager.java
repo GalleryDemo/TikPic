@@ -3,6 +3,7 @@ package com.demo.tikpic.viewpager;
 import android.content.Context;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
@@ -39,10 +40,13 @@ public class GestureViewPager extends ViewPager {
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
             }
 
             @Override
             public void onPageSelected(int position) {
+                Log.d(TAG, "onPageScrolled: " + position);
+
                 //Log.d(TAG, "onPageSelected: " + position+"  / " +lastPos);
                 pos = position;
                 GestureViewPagerAdapter adapter = (GestureViewPagerAdapter) getAdapter();

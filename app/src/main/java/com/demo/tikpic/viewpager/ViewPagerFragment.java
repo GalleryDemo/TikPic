@@ -3,6 +3,8 @@ package com.demo.tikpic.viewpager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.DragAndDropPermissions;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,12 +24,14 @@ import com.demo.tikpic.view.VideoView;
 
 import java.util.List;
 
+import static androidx.constraintlayout.widget.Constraints.TAG;
+
 public class ViewPagerFragment extends Fragment {
 
-    //  private static String TAG = "ViewPagerFragment";
+    private static String TAG = "ViewPagerFragment";
     private Context mContext;
     private MainActivity mActivity;
-
+    private GestureViewPager view;
     private int gallryIndex = -1, albumIndex = -1, itemIndex = -1;
 
     @Override
@@ -60,7 +64,7 @@ public class ViewPagerFragment extends Fragment {
         } else {
             boolean flag = true;
             if (flag) {
-                GestureViewPager view = new GestureViewPager(mContext);
+                view = new GestureViewPager(mContext);
                 view.setBackgroundColor(getResources().getColor(R.color.black));
                 view.setPageMargin((int) getResources().getDimensionPixelOffset(R.dimen.page_margen));
                 List<MediaFile> list = DataManager.getInstance().getShowcaseOrAlbumOrIndex(gallryIndex, albumIndex);
@@ -89,7 +93,10 @@ public class ViewPagerFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        Log.d(TAG, "onDestroyView: Item: " + view.getCurrentItem());
         super.onDestroyView();
+        DataManager.getInstance().setCurrenPosition(view.getCurrentItem());
+
         mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         if (mActivity.getSupportActionBar() != null) {
             mActivity.getSupportActionBar().show();
