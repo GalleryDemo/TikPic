@@ -40,8 +40,8 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
-        android:background="@color/cardview_lightDark_background_trans"
         app:headerLayout="@layout/nav_header_main"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
         app:menu="@menu/activity_main_drawer" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
