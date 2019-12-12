@@ -90,7 +90,10 @@ public class MainActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.menu_button_normal);
+
         }
+
+
 
         drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -100,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 //  if(menuItem.getTitle())
 
-                Toast.makeText(getBaseContext(), menuItem.getTitle(), Toast.LENGTH_LONG).show();
+                //Toast.makeText(getBaseContext(), menuItem.getTitle(), Toast.LENGTH_LONG).show();
                 Log.d(TAG, "onNavigationItemSelected: ");
                 switch (menuItem.getItemId()) {
                     case R.id.nav_gallery:

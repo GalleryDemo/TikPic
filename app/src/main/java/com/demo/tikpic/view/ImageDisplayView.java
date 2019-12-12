@@ -21,9 +21,10 @@ import androidx.annotation.Nullable;
 
 import com.demo.tikpic.viewpager.GestureViewPager;
 
-import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +32,7 @@ import java.util.concurrent.Executors;
 
 public class ImageDisplayView extends View {
     private String TAG = "ImageDisplayView";
-    private String id;
+    private String mId;
 
     private int mState;//显示状态 合适屏幕，原图
 
@@ -211,13 +212,22 @@ public class ImageDisplayView extends View {
         }
 
     }
-
+    InputStream f = null;
     public void setUri(Uri uri) {
 
 
+     //   long begin = System.currentTimeMillis();
+        try {
+             f = (FileInputStream) getContext().getContentResolver().openInputStream(uri);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+       // Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+     //   long end = System.currentTimeMillis();
 
+      //  Log.d(TAG, "openInputStream(uri);  ----------------: " + "  time :" + (end - begin));
 
-        id = uri.toString();
+        mId = uri.toString();
         mImage = new ImageResource(uri);
         //Log.d(TAG, "setUri: " + uri.getPath());
         mDisplayWindow = new DisplayWindow();
@@ -260,10 +270,10 @@ public class ImageDisplayView extends View {
         for (int i = mDisplayWindow.posion[0], ni = 0; ni < mDisplayWindow.size[0]; i++, ni++) {
             for (int j = mDisplayWindow.posion[1], nj = 0; nj < mDisplayWindow.size[1]; j++, nj++) {
 
-                final String key = id + "_" + mImage.sampleSize + "/" + i + "/" + j;
+                final String key = mId + "_" + mImage.sampleSize + "/" + i + "/" + j;
 
-                if (mBlockState.containsKey(id + "_" + mImage.sampleSize + "//" + ni + "/" + nj)) {
-                    if (mBlockState.get(id + "_" + mImage.sampleSize + "//" + ni + "/" + nj).compareTo(key) == 0) {
+                if (mBlockState.containsKey(mId + "_" + mImage.sampleSize + "//" + ni + "/" + nj)) {
+                    if (mBlockState.get(mId + "_" + mImage.sampleSize + "//" + ni + "/" + nj).compareTo(key) == 0) {
                         continue;
                     }
                 }
@@ -275,17 +285,15 @@ public class ImageDisplayView extends View {
                 }
                 String key2 = "";
                 if (blockBitmap == null) {
-
-                   // Log.d(TAG, "block: " + key + "  块不存在");
+                    //Log.d(TAG, "block: " + key + "  块不存在");
                     for (int k = mImage.sampleSize * 2, l = 2; k <= caculateSampleSize(caculateRatio()); k *= 2, l *= 2) {
-                        key2 = id + "_" + k + "/" + (i / l) + "/" + (j / l);
+                        key2 = mId + "_" + k + "/" + (i / l) + "/" + (j / l);
 
                         blockBitmap = mLoader.getBitmap(key2);
-                        if (k == caculateSampleSize(caculateRatio()) && blockBitmap != null) {
+                        if (k == caculateSampleSize(caculateRatio()) && blockBitmap == null) {
                             blockBitmap = mBaseBitmap.get(key2);
 
                         }
-
                         if (blockBitmap != null) {
                             int x = i % l;
                             int y = j % l;
@@ -356,7 +364,7 @@ public class ImageDisplayView extends View {
                     int rectLeft = (ni * mImage.adaptBlockSize[0]) / mImage.sampleSize;
                     int rectTop = nj * mImage.adaptBlockSize[1] / mImage.sampleSize;
                     if (key2 == "") {
-                        mBlockState.put(id + "_" + mImage.sampleSize + "//" + ni + "/" + nj, key);
+                        mBlockState.put(mId + "_" + mImage.sampleSize + "//" + ni + "/" + nj, key);
                     } else {
 
                     }
@@ -416,26 +424,25 @@ public class ImageDisplayView extends View {
     private void doFirst() {
 
         //小图
-        Log.d(TAG, "doFirst: szie"+mImage.imageSize[0]*mImage.imageSize[1]);
+        Log.d(TAG, "doFirst: szie  "+mImage.imageSize[0]*mImage.imageSize[1]);
          if(mImage.imageSize[0]*mImage.imageSize[1]<12000000){
             mImage.setBasicBlockSize(mImage.imageSize[0], mImage.imageSize[1]);
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = false;
-            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            options.inPreferredConfig = Bitmap.Config.RGB_565;
             options.inSampleSize =1;
             long begin = System.currentTimeMillis();
-
             mDisplayWindow.bitmap = mImage.resource.decodeRegion(new Rect(0, 0, mImage.imageSize[0], mImage.imageSize[1]), options);
             long end = System.currentTimeMillis();
-            Log.d(TAG, "doFirst: wh"+mImage.imageSize[0]+"  //  "+mImage.imageSize[1]);
             Log.d(TAG, "耗时11111  ----------------: " + "  time :" + (end - begin));
+            Log.d(TAG, "doFirst: wh7 "+mImage.imageSize[0]+"  //  "+mImage.imageSize[1]);
 
         } else {
              float ratio = caculateRatio();
              // Log.d(TAG, "loadBasicBitmap: "+ratio);
              BitmapFactory.Options options = new BitmapFactory.Options();
              options.inJustDecodeBounds = false;
-             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+             options.inPreferredConfig = Bitmap.Config.RGB_565;
 
              options.inSampleSize=caculateSampleSize(ratio);
 
@@ -458,7 +465,7 @@ public class ImageDisplayView extends View {
                      int rectLeft = i * mImage.basicBlockSize[0];
                      int rectTop = j * mImage.basicBlockSize[1];
                      Bitmap add = Bitmap.createBitmap(xxxx, rectLeft, rectTop, thisWidth, thisHeight, null, false);
-                     String key2 = id + "_" + options.inSampleSize + "/" + i + "/" + j;
+                     String key2 = mId + "_" + options.inSampleSize + "/" + i + "/" + j;
                      Log.d(TAG, "doFirst: keyyyyyyy"+key2);
                      mBaseBitmap.put(key2, add);
                  }

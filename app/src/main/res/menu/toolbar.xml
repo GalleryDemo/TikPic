@@ -5,7 +5,7 @@
     <item
         android:id="@+id/setting"
         android:title="Set"
-        android:icon="@drawable/more_button_normal"
+        android:icon="@drawable/more"
         app:showAsAction="always"
         />
 </menu>

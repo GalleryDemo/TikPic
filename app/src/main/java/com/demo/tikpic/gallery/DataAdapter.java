@@ -63,8 +63,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         // load placeholder
-        holder.mImageView.setImageDrawable(
-                hostActivity.getDrawable(R.drawable.ic_launcher_foreground));
+        //holder.mImageView.setImageDrawable(hostActivity.getDrawable(R.drawable.logo4));
 
         int index = currentAlbum.get(position);
         Log.d(TAG, "onBindViewHolder - path : " + DataManager.getInstance(hostActivity).getAllItemList().get(index).getPath());

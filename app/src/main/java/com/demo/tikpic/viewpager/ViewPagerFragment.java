@@ -34,6 +34,8 @@ public class ViewPagerFragment extends Fragment {
     private GestureViewPager view;
     private int gallryIndex = -1, albumIndex = -1, itemIndex = -1;
 
+    boolean flag = true;
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -62,7 +64,7 @@ public class ViewPagerFragment extends Fragment {
             Toast.makeText(getContext(), "没有坐标", Toast.LENGTH_LONG).show();
             return null;
         } else {
-            boolean flag = true;
+
             if (flag) {
                 view = new GestureViewPager(mContext);
                 view.setBackgroundColor(getResources().getColor(R.color.black));
@@ -93,14 +95,17 @@ public class ViewPagerFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        Log.d(TAG, "onDestroyView: Item: " + view.getCurrentItem());
         super.onDestroyView();
-        DataManager.getInstance().setCurrenPosition(view.getCurrentItem());
+        if (flag) {
+            Log.d(TAG, "onDestroyView: Item: " + view.getCurrentItem());
 
+            DataManager.getInstance().setCurrenPosition(view.getCurrentItem());
+        }
         mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         if (mActivity.getSupportActionBar() != null) {
             mActivity.getSupportActionBar().show();
         }
+
     }
 
 
