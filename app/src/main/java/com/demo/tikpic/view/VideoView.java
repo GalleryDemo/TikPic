@@ -9,14 +9,12 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -25,30 +23,27 @@ import android.widget.TextView;
 
 import com.demo.tikpic.R;
 import com.demo.tikpic.viewpager.GestureViewPager;
-import com.demo.tikpic.viewpager.ViewPagerFragment;
 
 import java.io.IOException;
-
-import static androidx.constraintlayout.widget.Constraints.TAG;
 
 public class VideoView extends RelativeLayout implements TextureView.SurfaceTextureListener {
 
     String TAG = "VideoView";
-    //	private TextureView textureView;
+    //	private TextureView mTextureView;
     private MediaPlayer mMediaPlayer;
-    private Surface surface;
-    private String path;
-    TextureView textureView;
+    private Surface mSurface;
+    private String mPath;
+    TextureView mTextureView;
     private int screenWidth, screenHight, mScreenOrientation;
     private Context mContext;
     ImageView mPlayIcon;
-    ImageButton button;
-    SeekBar seekBar;
+    ImageButton mButton;
+    SeekBar mSeekBar;
     private TextView text_now, text_all;
-    private Thread thread;
-    private int CurrentPosition;
+    private Thread mThread;
+    private int mCurrentPosition;
     private boolean flag_play;
-    float scale = 1.0f;
+    float mScale = 1.0f;
     int videoWidth, videoHeight;
     VideoToolbar videoToolbar;
     int hideToolbar;
@@ -59,9 +54,9 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
             public void run() {
                 //super.run();
                 while (flag_play) {
-                    if (CurrentPosition != mMediaPlayer.getCurrentPosition()) {
-                        CurrentPosition = mMediaPlayer.getCurrentPosition();
-                        seekBar.setProgress(CurrentPosition);
+                    if (mCurrentPosition != mMediaPlayer.getCurrentPosition()) {
+                        mCurrentPosition = mMediaPlayer.getCurrentPosition();
+                        mSeekBar.setProgress(mCurrentPosition);
 
                     }
                 }
@@ -73,7 +68,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     public VideoView(Context context, String path) {
         super(context);
         mContext = context;
-        this.path = path;
+        this.mPath = path;
         try {
             init();
         } catch (IOException e) {
@@ -95,36 +90,36 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         mInputDetector = new InputDetector(mListener);
 
 
-        textureView = new TextureView(getContext());
-        textureView.setSurfaceTextureListener(this);
+        mTextureView = new TextureView(getContext());
+        mTextureView.setSurfaceTextureListener(this);
 
-        addView(textureView);
+        addView(mTextureView);
 
         anotherView();
 
         mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setDataSource(getContext(), Uri.parse(path));
-        mMediaPlayer.setSurface(surface);
+        mMediaPlayer.setDataSource(getContext(), Uri.parse(mPath));
+        mMediaPlayer.setSurface(mSurface);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
                 //mMediaPlayer.start();
 
-                seekBar.setMax(mMediaPlayer.getDuration());
+                mSeekBar.setMax(mMediaPlayer.getDuration());
 
                 text_all.setText(getShowTime(mMediaPlayer.getDuration()));
                 flag_play = true;
 
-                thread = thr();
-                thread.start();
+                mThread = thr();
+                mThread.start();
             }
         });
         mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 mPlayIcon.setVisibility(View.VISIBLE);
-                seekBar.setProgress(mMediaPlayer.getDuration());
+                mSeekBar.setProgress(mMediaPlayer.getDuration());
             }
         });
 
@@ -134,6 +129,12 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         videoWidth = mMediaPlayer.getVideoWidth();
         videoHeight = mMediaPlayer.getVideoHeight();
 
+
+
+        setSize(caculateRatio());
+    }
+
+    private float caculateRatio(){
         float ww = 1.0f;
         if (screenHight < videoHeight || screenWidth < videoWidth) {
             ww = (float) screenWidth / (float) videoWidth;
@@ -148,8 +149,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
                 ww = hh;
             }
         }
-
-        setSize(ww);
+        return ww;
     }
 
     private void getWindewSize() {
@@ -187,8 +187,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
         videoToolbar.setLayoutParams(lp2);//设置布局参数
         addView(videoToolbar);
 
-        button = findViewById(R.id.button);
-        button.setOnClickListener(new OnClickListener() {
+        mButton = findViewById(R.id.button);
+        mButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 VideoView.this.onClick();
@@ -198,8 +198,8 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
 
         text_now = (TextView) findViewById(R.id.text_now);
         text_all = (TextView) findViewById(R.id.text_all);
-        seekBar = findViewById(R.id.seekBar);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mSeekBar = findViewById(R.id.seekBar);
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // TODO Auto-generated method stub
                 if (progress >= 0 && mMediaPlayer.isPlaying()) {
@@ -256,26 +256,40 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     }
 
     private void setSize(float x) {
-        scale *= x;
-        int w = (int) (videoWidth * scale);
-        int h = (int) (videoHeight * scale);
+        mScale *= x;
+
+
+        if (caculateRatio() <= 1.0f) {
+                mScale=caculateRatio();
+        } else {
+            if(mScale<=1.0f){
+                mScale=1.0f;
+            }else if(mScale>=caculateRatio()){
+                mScale=caculateRatio();
+            }
+
+        }
+
+        int w = (int) (videoWidth * mScale);
+        int h = (int) (videoHeight * mScale);
+
         Log.d(TAG, "setSize: " + w + "  /  " + h);
         LayoutParams layoutParams = new LayoutParams(w, h);
         //layoutParams.setMargins((screenWidth-w)/2,(screenHight-h)/2,screenWidth-(screenWidth-w)/2,screenHight-(screenHight-h)/2);
         layoutParams.setMargins((screenWidth - w) / 2, (screenHight - h) / 2, 0, 0);
-        textureView.setLayoutParams(layoutParams);
+        mTextureView.setLayoutParams(layoutParams);
     }
 
     private void play() {
 
-        mMediaPlayer.setSurface(surface);
+        mMediaPlayer.setSurface(mSurface);
         mMediaPlayer.seekTo(0);
         mPlayIcon.setVisibility(VISIBLE);
     }
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceT, int width, int height) {
-        surface = new Surface(surfaceT);
+        mSurface = new Surface(surfaceT);
         play();
     }
 
@@ -288,7 +302,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceT) {
         flag_play = false;
         surfaceT = null;
-        surface = null;
+        mSurface = null;
         mMediaPlayer.stop();
         mMediaPlayer.release();
 
@@ -330,21 +344,25 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
     };
 
     private void onClick() {
-        if (mMediaPlayer.isPlaying()) {
-            mMediaPlayer.pause();
-            button.setImageResource(R.drawable.play_pause_normal);
-            mPlayIcon.setVisibility(View.VISIBLE);
-        } else {
-            mMediaPlayer.start();
-            button.setImageResource(R.drawable.play_pause);
-            mPlayIcon.setVisibility(View.INVISIBLE);
+        if(videoToolbar.getVisibility()==View.VISIBLE){
+            if (mMediaPlayer.isPlaying()) {
+                mMediaPlayer.pause();
+                mButton.setImageResource(R.drawable.play_pause_normal);
+                mPlayIcon.setVisibility(View.VISIBLE);
+            } else {
+                mMediaPlayer.start();
+                mButton.setImageResource(R.drawable.play_pause);
+                mPlayIcon.setVisibility(View.INVISIBLE);
+            }
+        }else{
+            hideToolbar=0;
+            videoToolbar.setVisibility(View.VISIBLE);
         }
+
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        videoToolbar.setVisibility(View.VISIBLE);
-        hideToolbar = 0;
         return mInputDetector.onTouchEvent(event);
     }
 
@@ -360,6 +378,7 @@ public class VideoView extends RelativeLayout implements TextureView.SurfaceText
             // mMediaPlayer.pause();
             mMediaPlayer.seekTo(0);
             mMediaPlayer.pause();
+            mButton.setImageResource(R.drawable.play_pause_normal);
             mPlayIcon.setVisibility(View.VISIBLE);
 
         }
